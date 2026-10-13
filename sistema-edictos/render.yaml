@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: edictos-unitepc
+    env: python
+    buildCommand: ""
+    startCommand: "python3 server.py"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.6
+      - key: APP_PIN
+        value: "2026"

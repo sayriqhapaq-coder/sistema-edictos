@@ -1,0 +1,869 @@
+/* 
+   Sistema de Gestión de Edictos y Defensas de Grado
+   Universidad Técnica Privada Cosmos - UNITEPC Sub Sede El Alto
+   Estilos Generales y Estilos de Impresión Oficial (@media print)
+*/
+
+:root {
+  --primary: #0f3460;
+  --primary-dark: #16213e;
+  --primary-light: #1a508b;
+  --secondary: #e94560;
+  --accent: #00adb5;
+  --bg-app: #f4f6f9;
+  --card-bg: #ffffff;
+  --text-main: #1f2937;
+  --text-muted: #6b7280;
+  --border-color: #e5e7eb;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #3b82f6;
+
+  /* Colores del Documento Oficial */
+  --edicto-header-bg: #f8c5b5;
+  --edicto-border: #222222;
+  --edicto-text: #111111;
+  --stamp-blue: #1d63a8;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* Barra Superior */
+.top-navbar {
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+  color: #ffffff;
+  padding: 0.85rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.brand-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.brand-logo {
+  width: 44px;
+  height: 44px;
+  background: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--primary);
+  border: 2px solid var(--accent);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.brand-info h1 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.brand-info p {
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.badge-authority {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 0.35rem 0.85rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Pestañas de Navegación */
+.tabs-container {
+  background: #ffffff;
+  border-bottom: 1px solid var(--border-color);
+  padding: 0 2rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 0.9rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tab-btn:hover {
+  color: var(--primary-light);
+  background: #f9fafb;
+}
+
+.tab-btn.active {
+  color: var(--primary);
+  border-bottom-color: var(--secondary);
+}
+
+/* Contenido Principal */
+.main-container {
+  max-width: 1380px;
+  margin: 1.5rem auto;
+  padding: 0 1.5rem 3rem;
+}
+
+.view-section {
+  display: none;
+}
+
+.view-section.active {
+  display: block;
+}
+
+/* Botones y Controles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background: var(--primary-light);
+}
+
+.btn-secondary {
+  background: #4b5563;
+  color: #ffffff;
+}
+
+.btn-secondary:hover {
+  background: #374151;
+}
+
+.btn-accent {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+.btn-accent:hover {
+  background: #0369a1;
+}
+
+.btn-success {
+  background: var(--success);
+  color: #ffffff;
+}
+
+.btn-success:hover {
+  background: #059669;
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #ffffff;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+}
+
+.btn-outline {
+  background: transparent;
+  border-color: var(--border-color);
+  color: var(--text-main);
+}
+
+.btn-outline:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.btn-sm {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8rem;
+}
+
+/* Barra de herramientas para Edicto */
+.edicto-toolbar {
+  background: #ffffff;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.edicto-selector-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.form-select, .form-input {
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  outline: none;
+  background-color: #ffffff;
+}
+
+.form-select:focus, .form-input:focus {
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(26, 80, 139, 0.15);
+}
+
+.edicto-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-label input {
+  cursor: pointer;
+}
+
+/* ====================================================
+   HOJA DEL EDICTO OFICIAL (VISTA PREVIA E IMPRESIÓN)
+   ==================================================== */
+
+.edicto-sheet-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0;
+  background: #e5e7eb;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.edicto-paper {
+  background: #ffffff;
+  width: 216mm; /* Tamaño carta: 8.5 x 11 in (215.9 x 279.4 mm) */
+  min-height: 279mm;
+  padding: 22mm 22mm 20mm 22mm;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  position: relative;
+  font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+  color: var(--edicto-text);
+  box-sizing: border-box;
+}
+
+.official-header {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.official-univ-title {
+  font-size: 19pt;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  margin-bottom: 5px;
+  color: #1f2937;
+  text-transform: uppercase;
+}
+
+.official-edicto-code {
+  font-size: 13.5pt;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  margin-bottom: 4px;
+  color: #111827;
+}
+
+.official-modality {
+  font-size: 13.5pt;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  margin-bottom: 4px;
+  color: #111827;
+}
+
+.official-subtitle {
+  font-size: 13.5pt;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: #111827;
+}
+
+/* Tabla del Edicto Oficial */
+.official-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  margin-bottom: 30px;
+  font-size: 8.5pt;
+}
+
+.official-table th,
+.official-table td {
+  border: 1px solid var(--edicto-border);
+  padding: 5px 6px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.official-table thead th {
+  background-color: var(--edicto-header-bg);
+  font-weight: 700;
+  font-size: 8.5pt;
+  color: #000000;
+  text-transform: uppercase;
+  padding: 7px 4px;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+.official-table .col-estudiante {
+  width: 23%;
+  font-weight: 600;
+  text-align: left;
+  padding-left: 8px;
+  line-height: 1.25;
+}
+
+.official-table .col-carrera {
+  width: 16%;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.official-table .col-fecha {
+  width: 17%;
+  line-height: 1.2;
+}
+
+.official-table .col-hrs {
+  width: 7%;
+  font-weight: 600;
+}
+
+.official-table .col-lugar {
+  width: 16%;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.official-table .col-tribunal {
+  width: 21%;
+  padding: 0;
+  text-align: left;
+}
+
+.tribunal-split {
+  display: flex;
+  flex-direction: column;
+}
+
+.tribunal-member {
+  padding: 6px 6px;
+  line-height: 1.15;
+  font-size: 8.5pt;
+}
+
+.tribunal-divider {
+  border-bottom: 1px solid var(--edicto-border);
+  width: 100%;
+}
+
+/* Pie del Edicto */
+.official-date-city {
+  text-align: center;
+  font-size: 12.5pt;
+  margin-top: 25px;
+  margin-bottom: 25px;
+  color: #111827;
+}
+
+.signature-stamp-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  min-height: 150px;
+  margin-top: 10px;
+}
+
+.signature-block {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.signature-svg {
+  width: 240px;
+  height: 90px;
+  margin-bottom: -15px;
+}
+
+.signature-name {
+  font-size: 11pt;
+  font-weight: 700;
+  color: #0b4f8a;
+  letter-spacing: 0.2px;
+}
+
+.signature-cargo {
+  font-size: 10.5pt;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: #0b4f8a;
+}
+
+.signature-sede {
+  font-size: 9.5pt;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: #0b4f8a;
+}
+
+.stamp-seal {
+  position: absolute;
+  right: calc(50% - 170px);
+  top: 15px;
+  width: 130px;
+  height: 130px;
+  z-index: 1;
+  opacity: 0.88;
+  transform: rotate(8deg);
+  pointer-events: none;
+}
+
+/* ====================================================
+   PESTAÑA: GESTIÓN DE DEFENSAS Y ESTUDIANTES
+   ==================================================== */
+
+.card {
+  background: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 240px;
+}
+
+/* Tabla moderna de datos */
+.data-table-container {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.data-table th {
+  background: #f8fafc;
+  color: var(--text-muted);
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.data-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.data-table tr:hover {
+  background-color: #f9fafb;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-aprobada {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badge-programada {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge-reprobada {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.badge-postergada {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+/* ====================================================
+   PESTAÑA: REPORTES Y HISTORIAL POR GESTIÓN
+   ==================================================== */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  background: #ffffff;
+  padding: 1.25rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  border-left: 4px solid var(--primary);
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-card.success { border-left-color: var(--success); }
+.stat-card.warning { border-left-color: var(--warning); }
+.stat-card.accent { border-left-color: var(--accent); }
+
+.stat-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.stat-value {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--primary-dark);
+}
+
+.stat-subtext {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+/* Gráfico de barras ligero con CSS */
+.carreras-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.carrera-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.carrera-bar-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.carrera-progress-bg {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.carrera-progress-fill {
+  height: 100%;
+  background: var(--primary-light);
+  border-radius: 4px;
+}
+
+/* ====================================================
+   MODALES
+   ==================================================== */
+
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  backdrop-filter: blur(2px);
+}
+
+.modal-backdrop.show {
+  display: flex;
+}
+
+.modal-box {
+  background: #ffffff;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 650px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  background: #f9fafb;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+/* Formularios en Modal */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.form-group.full-width {
+  grid-column: span 2;
+}
+
+.form-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.form-help {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Mensajes Toast */
+.toast-container {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.toast {
+  background: #ffffff;
+  padding: 0.85rem 1.25rem;
+  border-radius: 6px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid var(--primary);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: slideIn 0.3s ease;
+}
+
+.toast.success { border-left-color: var(--success); }
+.toast.error { border-left-color: var(--danger); }
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* ====================================================
+   CONFIGURACIÓN DE IMPRESIÓN OFICIAL (@media print)
+   ==================================================== */
+
+@media print {
+  /* Ocultar todos los elementos de la interfaz */
+  .top-navbar,
+  .tabs-container,
+  .edicto-toolbar,
+  .modal-backdrop,
+  .toast-container,
+  .btn,
+  #view-defensas,
+  #view-reportes,
+  #view-config,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .main-container {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .edicto-sheet-wrapper {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+  }
+
+  .edicto-paper {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    padding: 10mm 15mm !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .official-table thead th {
+    background-color: var(--edicto-header-bg) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .stamp-seal {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  @page {
+    size: letter portrait;
+    margin: 10mm 15mm 10mm 15mm;
+  }
+}

@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Edictos de Defensa de Grado - UNITEPC El Alto</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+</head>
+<body>
+
+  <!-- Barra Superior -->
+  <header class="top-navbar">
+    <div class="brand-wrapper">
+      <div class="brand-logo">U</div>
+      <div class="brand-info">
+        <h1>UNIVERSIDAD TÉCNICA PRIVADA COSMOS</h1>
+        <p>Sistema de Edictos y Registro de Defensas de Grado &bull; Sub Sede El Alto</p>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <div class="badge-authority" id="nav-authority-badge">
+        <span>✍️</span>
+        <strong id="badge-authority-name">Lic. Amílcar Bruno Cáceres Pérez</strong>
+        <span style="opacity:0.7">| Vicerrector</span>
+      </div>
+      <button class="btn btn-outline btn-sm" id="btn-lock-app" style="color:#ffffff; border-color:rgba(255,255,255,0.3); background:rgba(255,255,255,0.1);" title="Bloquear acceso con PIN">
+        <span>🔒</span> Bloquear
+      </button>
+    </div>
+  </header>
+
+  <!-- Pestañas de Navegación -->
+  <nav class="tabs-container no-print">
+    <button class="tab-btn active" data-tab="view-edicto">
+      <span>📄</span> Edicto Imprimible
+    </button>
+    <button class="tab-btn" data-tab="view-defensas">
+      <span>🎓</span> Registro de Estudiantes y Defensas
+    </button>
+    <button class="tab-btn" data-tab="view-reportes">
+      <span>📊</span> Historial por Gestión
+    </button>
+    <button class="tab-btn" data-tab="view-config">
+      <span>⚙️</span> Configuración Institucional
+    </button>
+  </nav>
+
+  <main class="main-container">
+
+    <!-- ========================================================
+         VISTA 1: EDICTO IMPRIMIBLE (DOCUMENTO OFICIAL)
+         ======================================================== -->
+    <section id="view-edicto" class="view-section active">
+      
+      <!-- Barra de herramientas del edicto -->
+      <div class="edicto-toolbar no-print">
+        <div class="edicto-selector-group">
+          <label for="select-active-edicto" style="font-weight:600; font-size:0.9rem;">Edicto Activo:</label>
+          <select id="select-active-edicto" class="form-select" style="min-width: 250px;">
+            <!-- Cargado dinámicamente -->
+          </select>
+          <button class="btn btn-outline btn-sm" id="btn-modal-nuevo-edicto" title="Crear un nuevo edicto oficial">
+            <span>➕</span> Nuevo Edicto
+          </button>
+          <button class="btn btn-outline btn-sm" id="btn-modal-editar-edicto" title="Editar cabeceras o fecha del edicto">
+            <span>✏️</span> Editar Cabecera
+          </button>
+        </div>
+
+        <div class="edicto-actions">
+          <label class="toggle-label" title="Incluir firma facsímil para emisión directa">
+            <input type="checkbox" id="chk-toggle-firma" checked>
+            <span>Firma digital</span>
+          </label>
+
+          <label class="toggle-label" title="Incluir sello institucional UNITEPC">
+            <input type="checkbox" id="chk-toggle-sello" checked>
+            <span>Sello oficial</span>
+          </label>
+
+          <button class="btn btn-accent" id="btn-modal-asignar-estudiantes" title="Añadir estudiantes a este edicto">
+            <span>👥</span> Gestionar Estudiantes
+          </button>
+
+          <button class="btn btn-primary" id="btn-imprimir-edicto" title="Imprimir o guardar como PDF">
+            <span>🖨️</span> Imprimir Edicto Oficial (PDF)
+          </button>
+        </div>
+      </div>
+
+      <!-- Hoja del Edicto (Idéntica al documento adjunto) -->
+      <div class="edicto-sheet-wrapper">
+        <article class="edicto-paper" id="edicto-paper-content">
+          
+          <!-- Encabezado Oficial -->
+          <header class="official-header">
+            <h2 class="official-univ-title" id="paper-univ-title">UNIVERSIDAD TÉCNICA PRIVADA COSMOS</h2>
+            <div class="official-edicto-code" id="paper-edicto-code">EDICTO VR-EA 02-2026</div>
+            <div class="official-modality" id="paper-modality">EXÁMEN DE GRADO</div>
+            <div class="official-subtitle" id="paper-subtitle">TRIBUNAL INTERNO PARA DEFENSA DE GRADO</div>
+          </header>
+
+          <!-- Tabla Oficial de Estudiantes y Defensas -->
+          <table class="official-table">
+            <thead>
+              <tr>
+                <th class="col-estudiante">ESTUDIANTE</th>
+                <th class="col-carrera">CARRERA</th>
+                <th class="col-fecha">FECHA DE DEFENSA</th>
+                <th class="col-hrs">HRS</th>
+                <th class="col-lugar">LUGAR</th>
+                <th class="col-tribunal">TRIBUNAL INTERNO</th>
+              </tr>
+            </thead>
+            <tbody id="paper-table-body">
+              <!-- Se renderiza dinámicamente con las filas del documento -->
+            </tbody>
+          </table>
+
+          <!-- Fecha y Ciudad de Emisión -->
+          <div class="official-date-city" id="paper-date-city">
+            El Alto, 02 de marzo de 2026
+          </div>
+
+          <!-- Bloque de Firma y Sello Oficial -->
+          <div class="signature-stamp-container">
+            
+            <!-- Firma del Vicerrector -->
+            <div class="signature-block" id="paper-signature-block">
+              <div class="signature-svg-wrapper" id="signature-graphics">
+                <!-- SVG de Firma Azul Estilizada -->
+                <svg class="signature-svg" viewBox="0 0 260 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <!-- Trazos de firma cursiva en tinta azul -->
+                  <path d="M 30 72 C 55 40, 80 15, 105 18 C 115 20, 110 50, 95 65 C 80 80, 110 55, 140 35 C 160 22, 175 18, 160 48 C 150 68, 130 82, 170 50 C 190 35, 220 20, 240 25" stroke="#1d63a8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M 65 52 L 195 48" stroke="#1d63a8" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M 40 78 C 80 74, 150 72, 225 76" stroke="#1d63a8" stroke-width="1.8" stroke-linecap="round"/>
+                  <path d="M 115 15 L 105 82" stroke="#1d63a8" stroke-width="2.2" stroke-linecap="round"/>
+                  <path d="M 148 24 L 140 75" stroke="#1d63a8" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              
+              <div class="signature-name" id="paper-authority-name">Lic. Amílcar Bruno Cáceres Pérez</div>
+              <div class="signature-cargo" id="paper-authority-cargo">VICERRECTOR</div>
+              <div class="signature-sede" id="paper-authority-sede">UNITEPC SUB SEDE EL ALTO</div>
+            </div>
+
+            <!-- Sello Oficial Redondo UNITEPC -->
+            <div class="stamp-seal" id="paper-stamp-seal">
+              <svg viewBox="0 0 160 160" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                <!-- Anillos del sello -->
+                <circle cx="80" cy="80" r="76" stroke="#1d63a8" stroke-width="2.5" fill="none" stroke-dasharray="4,2"/>
+                <circle cx="80" cy="80" r="72" stroke="#1d63a8" stroke-width="1.5" fill="none"/>
+                <circle cx="80" cy="80" r="50" stroke="#1d63a8" stroke-width="1.2" fill="none"/>
+                
+                <!-- Rutas de texto curvado -->
+                <defs>
+                  <path id="arc-upper" d="M 20 80 A 60 60 0 0 1 140 80" fill="none" />
+                  <path id="arc-lower" d="M 140 80 A 60 60 0 0 1 20 80" fill="none" />
+                </defs>
+                
+                <!-- Texto superior -->
+                <text font-size="8.5" font-family="Arial, sans-serif" font-weight="bold" fill="#1d63a8" letter-spacing="1">
+                  <textPath href="#arc-upper" startOffset="50%" text-anchor="middle">
+                    UNIVERSIDAD TECNICA PRIVADA COSMOS
+                  </textPath>
+                </text>
+                
+                <!-- Centro UNITEPC -->
+                <text x="80" y="78" font-size="16" font-family="Arial, sans-serif" font-weight="900" fill="#1d63a8" text-anchor="middle" letter-spacing="2">
+                  UNITEPC
+                </text>
+                
+                <text x="80" y="90" font-size="6.5" font-family="Arial, sans-serif" font-weight="bold" fill="#1d63a8" text-anchor="middle">
+                  SUB SEDE EL ALTO
+                </text>
+
+                <!-- Texto inferior -->
+                <text font-size="8.5" font-family="Arial, sans-serif" font-weight="bold" fill="#1d63a8" letter-spacing="1.2">
+                  <textPath href="#arc-lower" startOffset="50%" text-anchor="middle">
+                    ★ EL ALTO - BOLIVIA ★
+                  </textPath>
+                </text>
+              </svg>
+            </div>
+
+          </div>
+
+        </article>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         VISTA 2: REGISTRO DE ESTUDIANTES Y DEFENSAS
+         ======================================================== -->
+    <section id="view-defensas" class="view-section">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🎓</span> Estudiantes Registrados y Defensas de Grado
+          </div>
+          <div style="display:flex; gap:0.5rem;">
+            <button class="btn btn-primary" id="btn-modal-nueva-defensa">
+              <span>➕</span> Registrar Nuevo Estudiante
+            </button>
+          </div>
+        </div>
+
+        <!-- Filtros rápidos -->
+        <div class="filter-bar">
+          <div class="search-box">
+            <input type="text" id="filtro-busqueda" class="form-input" style="width:100%" placeholder="🔍 Buscar por estudiante, carrera o tribunal...">
+          </div>
+          <select id="filtro-gestion" class="form-select">
+            <option value="">Todas las gestiones</option>
+            <option value="2026" selected>Gestión 2026</option>
+            <option value="2025">Gestión 2025</option>
+            <option value="2024">Gestión 2024</option>
+          </select>
+          <select id="filtro-carrera" class="form-select">
+            <option value="">Todas las carreras</option>
+            <!-- Carreras cargadas dinámicamente -->
+          </select>
+          <select id="filtro-estado" class="form-select">
+            <option value="">Todos los estados</option>
+            <option value="Programada">Programada</option>
+            <option value="Aprobada">Aprobada</option>
+            <option value="Reprobada">Reprobada</option>
+            <option value="Postergada">Postergada</option>
+          </select>
+          <select id="filtro-edicto" class="form-select">
+            <option value="">Todos los edictos</option>
+            <!-- Edictos cargados dinámicamente -->
+          </select>
+          <button class="btn btn-outline btn-sm" id="btn-limpiar-filtros">Limpiar Filtros</button>
+        </div>
+
+        <!-- Tabla de datos -->
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Estudiante</th>
+                <th>Carrera</th>
+                <th>Modalidad</th>
+                <th>Fecha y Hora</th>
+                <th>Lugar</th>
+                <th>Tribunales</th>
+                <th>Gestión</th>
+                <th>Edicto</th>
+                <th>Estado</th>
+                <th style="text-align:center;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-defensas-body">
+              <!-- Datos cargados dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         VISTA 3: HISTORIAL Y REPORTES POR GESTIÓN
+         ======================================================== -->
+    <section id="view-reportes" class="view-section">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>📊</span> Historial de Estudiantes que Defendieron por Gestión
+          </div>
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <label for="reporte-select-gestion" style="font-weight:600; font-size:0.9rem;">Seleccionar Gestión:</label>
+            <select id="reporte-select-gestion" class="form-select" style="min-width:140px; font-weight:700;">
+              <!-- Gestiones cargadas dinámicamente -->
+            </select>
+            <button class="btn btn-success" id="btn-exportar-csv" title="Descargar en formato Excel compatible">
+              <span>📥</span> Exportar a Excel (CSV)
+            </button>
+            <button class="btn btn-primary" id="btn-imprimir-reporte" title="Imprimir informe de graduados">
+              <span>🖨️</span> Imprimir Reporte
+            </button>
+          </div>
+        </div>
+
+        <!-- Tarjetas de Estadísticas KPI -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Defensas Registradas</div>
+            <div class="stat-value" id="stat-total-defensas">0</div>
+            <div class="stat-subtext">Estudiantes programados en la gestión</div>
+          </div>
+          <div class="stat-card success">
+            <div class="stat-label">Defensas Aprobadas (Titulados)</div>
+            <div class="stat-value" id="stat-total-aprobadas" style="color:var(--success);">0</div>
+            <div class="stat-subtext">Completaron su defensa con éxito</div>
+          </div>
+          <div class="stat-card warning">
+            <div class="stat-label">Defensas Pendientes / Prog.</div>
+            <div class="stat-value" id="stat-total-programadas" style="color:var(--warning);">0</div>
+            <div class="stat-subtext">Pendientes de evaluación</div>
+          </div>
+          <div class="stat-card accent">
+            <div class="stat-label">Carreras con Egresados</div>
+            <div class="stat-value" id="stat-total-carreras" style="color:var(--accent);">0</div>
+            <div class="stat-subtext">Diversidad de programas académicos</div>
+          </div>
+        </div>
+
+        <!-- Desglose por Carreras -->
+        <div style="display:grid; grid-template-columns: 1fr 2fr; gap:1.5rem; margin-top:1.5rem;">
+          <div style="background:#f8fafc; border:1px solid var(--border-color); border-radius:8px; padding:1.25rem;">
+            <h3 style="font-size:1rem; font-weight:700; margin-bottom:1rem; color:var(--primary);">
+              Distribuci&oacute;n por Carrera
+            </h3>
+            <div id="carreras-progress-container" class="carreras-breakdown">
+              <!-- Barras de progreso generadas dinámicamente -->
+            </div>
+          </div>
+
+          <div>
+            <h3 style="font-size:1rem; font-weight:700; margin-bottom:0.75rem; color:var(--primary);">
+              Lista de Titulados y Defensas de la Gestión <span id="label-gestion-activa">2026</span>
+            </h3>
+            <div class="data-table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Estudiante</th>
+                    <th>Carrera</th>
+                    <th>Fecha</th>
+                    <th>Tribunales</th>
+                    <th>Edicto</th>
+                    <th>Estado</th>
+                    <th>Nota</th>
+                  </tr>
+                </thead>
+                <tbody id="tabla-reporte-gestion-body">
+                  <!-- Se llena dinámicamente -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================
+         VISTA 4: CONFIGURACIÓN INSTITUCIONAL
+         ======================================================== -->
+    <section id="view-config" class="view-section">
+      <div class="card" style="max-width:850px; margin:0 auto;">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🏛️</span> Configuración de la Universidad y Autoridad
+          </div>
+        </div>
+
+        <form id="form-config" style="display:flex; flex-direction:column; gap:1.25rem;">
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label class="form-label">Nombre de la Institución Universitaria</label>
+              <input type="text" id="cfg-universidad" class="form-input" required>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Sede / Sub Sede</label>
+              <input type="text" id="cfg-sede" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Ciudad por Defecto</label>
+              <input type="text" id="cfg-ciudad" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Nombre de la Autoridad que Firma</label>
+              <input type="text" id="cfg-autoridad-nombre" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Cargo de la Autoridad</label>
+              <input type="text" id="cfg-autoridad-cargo" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Gestión Actual por Defecto</label>
+              <input type="text" id="cfg-gestion-actual" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Formato de Código de Edicto</label>
+              <input type="text" id="cfg-formato-codigo" class="form-input" required>
+              <small class="form-help">Ejemplo: EDICTO VR-EA {num}-{gestion}</small>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">PIN de Seguridad (Acceso Privado)</label>
+              <input type="password" id="cfg-app-pin" class="form-input" placeholder="Ej: 2026">
+              <small class="form-help">PIN de 4 dígitos para proteger el acceso desde otras computadoras o la nube.</small>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:0.75rem; border-top:1px solid var(--border-color); padding-top:1.25rem;">
+            <button type="submit" class="btn btn-primary">
+              <span>💾</span> Guardar Configuración
+            </button>
+          </div>
+        </form>
+
+        <!-- Respaldos y Restauración -->
+        <div style="margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--border-color);">
+          <h3 style="font-size:1rem; font-weight:700; margin-bottom:0.75rem; color:var(--primary);">
+            Copia de Seguridad y Restauración de Base de Datos
+          </h3>
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+            Descargue una copia de respaldo completa en formato JSON o restaure datos guardados anteriormente.
+          </p>
+          <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+            <button class="btn btn-accent" id="btn-descargar-backup">
+              <span>📦</span> Descargar Respaldo JSON
+            </button>
+            <label class="btn btn-outline" style="cursor:pointer;">
+              <span>📂</span> Restaurar desde Archivo JSON
+              <input type="file" id="input-restore-file" accept=".json" style="display:none;">
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================
+       MODAL: NUEVA / EDITAR DEFENSA Y ESTUDIANTE
+       ======================================================== -->
+  <div class="modal-backdrop" id="modal-defensa">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-defensa-title">Registrar Defensa de Grado</h3>
+        <button class="modal-close" onclick="closeModal('modal-defensa')">&times;</button>
+      </div>
+      <form id="form-defensa">
+        <input type="hidden" id="defensa-id">
+        <div class="modal-body">
+          <div class="form-grid">
+            
+            <div class="form-group full-width">
+              <label class="form-label">Nombre Completo del Estudiante *</label>
+              <input type="text" id="def-estudiante" class="form-input" style="text-transform:uppercase;" placeholder="Ej: LETICIA SOLEDAD MOLLINEDO HUAYGUA" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Carrera *</label>
+              <input type="text" id="def-carrera" list="lista-carreras-sugerencias" class="form-input" style="text-transform:uppercase;" placeholder="Ej: MEDICINA, INGENIERIA DE SONIDO" required>
+              <datalist id="lista-carreras-sugerencias">
+                <option value="MEDICINA">
+                <option value="INGENIERIA DE SONIDO">
+                <option value="ODONTOLOGÍA">
+                <option value="FISIOTERAPIA Y KINESIOLOGÍA">
+                <option value="ENFERMERÍA">
+                <option value="BIOQUÍMICA Y FARMACIA">
+                <option value="DERECHO">
+                <option value="INGENIERÍA DE SISTEMAS">
+                <option value="ADMINISTRACIÓN DE EMPRESAS">
+              </datalist>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Modalidad de Graduación</label>
+              <select id="def-modalidad" class="form-select">
+                <option value="EXÁMEN DE GRADO" selected>EXÁMEN DE GRADO</option>
+                <option value="TESIS DE GRADO">TESIS DE GRADO</option>
+                <option value="PROYECTO DE GRADO">PROYECTO DE GRADO</option>
+                <option value="TRABAJO DIRIGIDO">TRABAJO DIRIGIDO</option>
+                <option value="GRADUACIÓN POR EXCELENCIA">GRADUACIÓN POR EXCELENCIA</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Fecha de Defensa *</label>
+              <input type="date" id="def-fecha" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Texto de Fecha (Español)</label>
+              <input type="text" id="def-fecha-texto" class="form-input" placeholder="Ej: Jueves 19 de Marzo">
+              <small class="form-help">Se genera automáticamente o puede personalizarlo.</small>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Hora (HRS) *</label>
+              <input type="text" id="def-hora" class="form-input" placeholder="Ej: 09:00, 14:00" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Lugar de la Defensa *</label>
+              <input type="text" id="def-lugar" list="lista-lugares-sugerencias" class="form-input" style="text-transform:uppercase;" placeholder="Ej: HOSPITAL 'METODISTA', CONSEJO ACADÉMICO" required>
+              <datalist id="lista-lugares-sugerencias">
+                <option value='HOSPITAL "METODISTA"'>
+                <option value="CONSEJO ACADÉMICO">
+                <option value="AULA MAGNA">
+                <option value="AUDITORIO CENTRAL">
+                <option value="SALA DE CONFERENCIAS">
+              </datalist>
+            </div>
+
+            <div class="form-group full-width">
+              <label class="form-label">Tribunal Interno 1 *</label>
+              <input type="text" id="def-tribunal-1" class="form-input" placeholder="Ej: Dra. Magaly Mamani Uruña" required>
+            </div>
+
+            <div class="form-group full-width">
+              <label class="form-label">Tribunal Interno 2 *</label>
+              <input type="text" id="def-tribunal-2" class="form-input" placeholder="Ej: Dra. Francy Fabiola Pacheco Quisbert" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Gestión Académica *</label>
+              <input type="text" id="def-gestion" class="form-input" value="2026" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Asignar a Edicto</label>
+              <select id="def-edicto-id" class="form-select">
+                <option value="">(Sin asignar - Pendiente)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Estado de la Defensa</label>
+              <select id="def-estado" class="form-select">
+                <option value="Programada">Programada</option>
+                <option value="Aprobada">Aprobada</option>
+                <option value="Reprobada">Reprobada</option>
+                <option value="Postergada">Postergada</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Calificación / Nota</label>
+              <input type="number" id="def-nota" class="form-input" min="0" max="100" step="0.1" placeholder="Ej: 85">
+            </div>
+
+            <div class="form-group full-width">
+              <label class="form-label">Observaciones (Opcional)</label>
+              <input type="text" id="def-observaciones" class="form-input" placeholder="Notas adicionales...">
+            </div>
+
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modal-defensa')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Defensa</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL: CREAR / EDITAR EDICTO OFICIAL
+       ======================================================== -->
+  <div class="modal-backdrop" id="modal-edicto">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-edicto-title">Crear Nuevo Edicto Oficial</h3>
+        <button class="modal-close" onclick="closeModal('modal-edicto')">&times;</button>
+      </div>
+      <form id="form-edicto">
+        <input type="hidden" id="edicto-id">
+        <div class="modal-body">
+          <div class="form-grid">
+            
+            <div class="form-group">
+              <label class="form-label">Código del Edicto *</label>
+              <input type="text" id="ed-codigo" class="form-input" placeholder="Ej: EDICTO VR-EA 02-2026" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Gestión *</label>
+              <input type="text" id="ed-gestion" class="form-input" value="2026" required>
+            </div>
+
+            <div class="form-group full-width">
+              <label class="form-label">Modalidad (Título Central)</label>
+              <input type="text" id="ed-modalidad" class="form-input" value="EXÁMEN DE GRADO" required>
+            </div>
+
+            <div class="form-group full-width">
+              <label class="form-label">Subtítulo</label>
+              <input type="text" id="ed-subtitulo" class="form-input" value="TRIBUNAL INTERNO PARA DEFENSA DE GRADO" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Fecha de Emisión</label>
+              <input type="date" id="ed-fecha-emision" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Ciudad</label>
+              <input type="text" id="ed-ciudad" class="form-input" value="El Alto" required>
+            </div>
+
+            <div class="form-group full-width">
+              <label class="form-label">Texto de Emisión (Pie de Página)</label>
+              <input type="text" id="ed-fecha-texto" class="form-input" placeholder="Ej: El Alto, 02 de marzo de 2026">
+              <small class="form-help">Tal como aparece al pie del documento oficial.</small>
+            </div>
+
+            <div class="form-group full-width">
+              <label class="form-label">Autoridad Firmante</label>
+              <input type="text" id="ed-autoridad-nombre" class="form-input" value="Lic. Amílcar Bruno Cáceres Pérez">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Cargo</label>
+              <input type="text" id="ed-autoridad-cargo" class="form-input" value="VICERRECTOR">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Sede</label>
+              <input type="text" id="ed-sede" class="form-input" value="UNITEPC SUB SEDE EL ALTO">
+            </div>
+
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modal-edicto')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Edicto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL: ASIGNAR ESTUDIANTES AL EDICTO ACTIVO
+       ======================================================== -->
+  <div class="modal-backdrop" id="modal-asignar-estudiantes">
+    <div class="modal-box" style="max-width:750px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Seleccionar Estudiantes para este Edicto</h3>
+        <button class="modal-close" onclick="closeModal('modal-asignar-estudiantes')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+          Marque los estudiantes que deben aparecer en la tabla del edicto actual:
+        </p>
+        <div class="data-table-container" style="max-height:350px; overflow-y:auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:40px; text-align:center;">
+                  <input type="checkbox" id="chk-select-all-estudiantes">
+                </th>
+                <th>Estudiante</th>
+                <th>Carrera</th>
+                <th>Fecha / Hora</th>
+                <th>Lugar</th>
+              </tr>
+            </thead>
+            <tbody id="lista-estudiantes-para-asignar">
+              <!-- Cargado dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modal-asignar-estudiantes')">Cerrar</button>
+        <button type="button" class="btn btn-primary" id="btn-guardar-asignacion-estudiantes">Guardar Asignación</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL DE BLOQUEO POR PIN (ACCESO PRIVADO)
+       ======================================================== -->
+  <div class="modal-backdrop" id="modal-pin-lock" style="z-index: 99999; backdrop-filter: blur(8px); background: rgba(15, 23, 42, 0.88);">
+    <div class="modal-box" style="max-width: 420px; text-align: center; padding: 2.25rem 2rem; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
+      <div style="font-size: 3rem; margin-bottom: 0.5rem;">🔐</div>
+      <h3 style="color: var(--primary); font-size: 1.35rem; font-weight: 800; margin-bottom: 0.25rem;">Acceso de Autoridad</h3>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.75rem; line-height: 1.4;">
+        UNIVERSIDAD TÉCNICA PRIVADA COSMOS<br>
+        <strong>Sub Sede El Alto &bull; Vicerrectorado</strong>
+      </p>
+      <form id="form-pin-login" style="display: flex; flex-direction: column; gap: 1rem;">
+        <div>
+          <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.5rem; text-align: left;">Ingrese su PIN de Seguridad:</label>
+          <input type="password" id="input-pin-auth" class="form-input" style="width: 100%; text-align: center; font-size: 1.6rem; letter-spacing: 6px; padding: 0.6rem;" placeholder="••••" required autofocus autocomplete="current-password">
+        </div>
+        <div id="pin-error-msg" style="color: var(--danger); font-size: 0.85rem; font-weight: 600; display: none;">PIN incorrecto. Intente nuevamente.</div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem; font-size: 1rem; font-weight: 700; margin-top: 0.5rem;">
+          Ingresar al Sistema
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Contenedor para Notificaciones Toast -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

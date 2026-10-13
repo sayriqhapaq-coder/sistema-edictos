@@ -1,0 +1,2 @@
+# Sistema de Edictos UNITEPC
+# Requiere únicamente Python 3 estándar (sin dependencias externas pesadas)
