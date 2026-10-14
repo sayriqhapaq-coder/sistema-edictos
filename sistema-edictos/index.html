@@ -41,6 +41,9 @@
     <button class="tab-btn" data-tab="view-reportes">
       <span>📊</span> Historial por Gestión
     </button>
+    <button class="tab-btn" data-tab="view-buscador">
+      <span>🔍</span> Buscador Histórico Global
+    </button>
     <button class="tab-btn" data-tab="view-config">
       <span>⚙️</span> Configuración Institucional
     </button>
@@ -214,7 +217,10 @@
           <div class="card-title">
             <span>🎓</span> Estudiantes Registrados y Defensas de Grado
           </div>
-          <div style="display:flex; gap:0.5rem;">
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <button class="btn btn-success" id="btn-modal-carga-masiva" title="Importar o copiar y pegar listas de Excel / CSV">
+              <span>📥</span> Carga Masiva desde Excel
+            </button>
             <button class="btn btn-primary" id="btn-modal-nueva-defensa">
               <span>➕</span> Registrar Nuevo Estudiante
             </button>
@@ -228,9 +234,7 @@
           </div>
           <select id="filtro-gestion" class="form-select">
             <option value="">Todas las gestiones</option>
-            <option value="2026" selected>Gestión 2026</option>
-            <option value="2025">Gestión 2025</option>
-            <option value="2024">Gestión 2024</option>
+            <!-- Gestiones cargadas dinámicamente desde 2019 en adelante -->
           </select>
           <select id="filtro-carrera" class="form-select">
             <option value="">Todas las carreras</option>
@@ -465,7 +469,60 @@
     </section>
 
     <!-- ========================================================
-         VISTA 4: CONFIGURACIÓN INSTITUCIONAL
+         VISTA: BUSCADOR HISTÓRICO GLOBAL (2019 - 2026+)
+         ======================================================== -->
+    <section id="view-buscador" class="view-section">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🔍</span> Buscador Histórico Global de Egresados y Titulados (2019 – 2026+)
+          </div>
+          <div>
+            <span style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">Sub Sede El Alto</span>
+          </div>
+        </div>
+
+        <div style="margin: 1.25rem 0;">
+          <div style="display:flex; gap:0.75rem;">
+            <input type="text" id="input-busqueda-global" class="form-input" style="font-size:1.05rem; padding:10px 14px; flex:1;" placeholder="🔍 Escriba el Apellido, Nombre, C.I., Carrera o Tribunal...">
+            <button class="btn btn-primary" id="btn-ejecutar-busqueda-global">Buscar en Todo el Historial</button>
+          </div>
+          <small style="color:var(--text-muted); font-size:0.85rem; margin-top:6px; display:block;">
+            💡 Busca instantáneamente en todas las defensas y edictos registrados desde la gestión 2019 hasta la actual sin restricciones de filtro.
+          </small>
+        </div>
+
+        <!-- Tabla de resultados globales -->
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Estudiante</th>
+                <th>C.I.</th>
+                <th>Carrera</th>
+                <th>Gestión</th>
+                <th>Edicto</th>
+                <th>Fecha y Hora</th>
+                <th>Tribunales</th>
+                <th>Nota</th>
+                <th>Estado</th>
+                <th style="text-align:center;">Acciones Rápidas</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-resultados-globales">
+              <tr>
+                <td colspan="10" style="text-align:center; padding:2.5rem; color:#6b7280;">
+                  Ingrese un nombre, apellido o C.I. para buscar en el archivo histórico.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         VISTA 5: CONFIGURACIÓN INSTITUCIONAL
          ======================================================== -->
     <section id="view-config" class="view-section">
       <div class="card" style="max-width:850px; margin:0 auto;">
@@ -565,9 +622,37 @@
         <div class="modal-body">
           <div class="form-grid">
             
-            <div class="form-group full-width">
-              <label class="form-label">Nombre Completo del Estudiante *</label>
-              <input type="text" id="def-estudiante" class="form-input" style="text-transform:uppercase;" placeholder="Ej: LETICIA SOLEDAD MOLLINEDO HUAYGUA" required>
+            <div class="form-group full-width" style="display:grid; grid-template-columns: 2.2fr 1.2fr 1fr; gap: 0.75rem;">
+              <div>
+                <label class="form-label">Nombre Completo del Estudiante *</label>
+                <input type="text" id="def-estudiante" class="form-input" style="text-transform:uppercase;" placeholder="Ej: LETICIA SOLEDAD MOLLINEDO HUAYGUA" required>
+              </div>
+              <div>
+                <label class="form-label">Cédula de Identidad (C.I.)</label>
+                <input type="text" id="def-ci" class="form-input" placeholder="Ej: 4892341">
+              </div>
+              <div>
+                <label class="form-label">Expedido</label>
+                <select id="def-ci-exp" class="form-select">
+                  <option value="LP" selected>LP (La Paz)</option>
+                  <option value="EA">EA (El Alto)</option>
+                  <option value="CB">CB (Cochabamba)</option>
+                  <option value="SC">SC (Santa Cruz)</option>
+                  <option value="OR">OR (Oruro)</option>
+                  <option value="PT">PT (Potosí)</option>
+                  <option value="CH">CH (Chuquisaca)</option>
+                  <option value="TJ">TJ (Tarija)</option>
+                  <option value="BE">BE (Beni)</option>
+                  <option value="PD">PD (Pando)</option>
+                  <option value="EXT">EXT (Extranjero)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Celular / WhatsApp (Opcional)</label>
+              <input type="tel" id="def-celular" class="form-input" placeholder="Ej: 71234567">
+              <small class="form-help">Para notificaciones oficiales directas.</small>
             </div>
 
             <div class="form-group">
@@ -637,7 +722,23 @@
 
             <div class="form-group">
               <label class="form-label">Gestión Académica *</label>
-              <input type="text" id="def-gestion" class="form-input" value="2026" required>
+              <input type="text" id="def-gestion" list="lista-gestiones-sugerencias" class="form-input" value="2026" placeholder="Ej: 2026, 2019" required>
+              <datalist id="lista-gestiones-sugerencias">
+                <option value="2027">
+                <option value="2026">
+                <option value="2025">
+                <option value="2024">
+                <option value="2023">
+                <option value="2022">
+                <option value="2021">
+                <option value="2020">
+                <option value="2019">
+                <option value="I-2026">
+                <option value="II-2025">
+                <option value="I-2025">
+                <option value="II-2024">
+                <option value="I-2024">
+              </datalist>
             </div>
 
             <div class="form-group">
@@ -698,7 +799,7 @@
 
             <div class="form-group">
               <label class="form-label">Gestión *</label>
-              <input type="text" id="ed-gestion" class="form-input" value="2026" required>
+              <input type="text" id="ed-gestion" list="lista-gestiones-sugerencias" class="form-input" value="2026" placeholder="Ej: 2026, 2019" required>
             </div>
 
             <div class="form-group full-width">
@@ -787,6 +888,243 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('modal-asignar-estudiantes')">Cerrar</button>
         <button type="button" class="btn btn-primary" id="btn-guardar-asignacion-estudiantes">Guardar Asignación</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL: CARGA MASIVA DE DEFENSAS DESDE EXCEL / PLANILLA
+       ======================================================== -->
+  <div class="modal-backdrop" id="modal-carga-masiva">
+    <div class="modal-box" style="max-width: 900px; width: 95%;">
+      <div class="modal-header">
+        <h3 class="modal-title">📥 Carga Masiva de Defensas desde Excel (Historial 2019 - 2026+)</h3>
+        <button class="modal-close" onclick="closeModal('modal-carga-masiva')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:12px 16px; margin-bottom:1.25rem; font-size:0.85rem; color:#1e40af; line-height:1.5;">
+          <strong>💡 ¿Cómo funciona la Carga Rápida?</strong><br>
+          1. Abra su archivo de Excel o planilla de defensas pasadas (desde 2019 hasta hoy).<br>
+          2. Copie las filas y péguelas directamente en el cuadro de texto abajo (o descargue nuestra plantilla modelo).<br>
+          3. El sistema reconocerá automáticamente nombres, C.I., carreras, tribunales, notas y gestiones.
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; gap:0.5rem;">
+            <button type="button" class="btn btn-outline btn-sm" id="btn-descargar-plantilla-csv">
+              <span>📥</span> Descargar Plantilla Excel (.CSV)
+            </button>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-cargar-ejemplo-masivo">
+              <span>📋</span> Pegar Ejemplo de Prueba
+            </button>
+          </div>
+          <div>
+            <span style="font-size:0.8rem; color:var(--text-muted);">Compatible con Excel (separado por tabulación o comas)</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="font-weight:700;">Pegue aquí las filas copiadas desde su Excel:</label>
+          <textarea id="txt-carga-masiva" class="form-input" rows="7" style="font-family:monospace; font-size:0.82rem; white-space:pre;" placeholder="ESTUDIANTE	CI	EXP	CARRERA	MODALIDAD	FECHA	HORA	LUGAR	TRIBUNAL 1	TRIBUNAL 2	CELULAR	GESTION	ESTADO	NOTA"></textarea>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.75rem;">
+          <button type="button" class="btn btn-primary" id="btn-procesar-masivo">
+            <span>⚙️</span> Analizar y Previsualizar Datos
+          </button>
+          <span id="badge-filas-detectadas" style="font-weight:700; font-size:0.9rem; color:var(--primary);"></span>
+        </div>
+
+        <!-- Previsualización -->
+        <div id="preview-masivo-container" style="display:none; margin-top:1.25rem;">
+          <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin-bottom:0.5rem;">
+            📋 Registros Listos para Importar:
+          </h4>
+          <div class="data-table-container" style="max-height:220px; overflow-y:auto; border:1px solid var(--border-color); border-radius:6px;">
+            <table class="data-table" style="font-size:0.8rem;">
+              <thead>
+                <tr>
+                  <th>N°</th>
+                  <th>Estudiante</th>
+                  <th>C.I.</th>
+                  <th>Carrera</th>
+                  <th>Gestión</th>
+                  <th>Fecha/Hora</th>
+                  <th>Tribunales</th>
+                  <th>Nota</th>
+                  <th>Celular</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-preview-masivo"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modal-carga-masiva')">Cancelar</button>
+        <button type="button" class="btn btn-success" id="btn-confirmar-carga-masiva" style="display:none;">
+          <span>💾</span> Guardar Todos los Registros en el Sistema
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL: ACTA OFICIAL INDIVIDUAL DE DEFENSA Y CALIFICACIÓN
+       ======================================================== -->
+  <div class="modal-backdrop" id="modal-acta-defensa">
+    <div class="modal-box" style="max-width: 900px; width: 95%;">
+      <div class="modal-header">
+        <h3 class="modal-title">📄 Acta Oficial de Calificación y Veredicto</h3>
+        <div style="display:flex; gap:0.5rem;">
+          <button type="button" class="btn btn-primary btn-sm" id="btn-imprimir-acta-individual">
+            <span>🖨️</span> Imprimir Acta (Carta 2.5cm)
+          </button>
+          <button class="modal-close" onclick="closeModal('modal-acta-defensa')">&times;</button>
+        </div>
+      </div>
+      <div class="modal-body" style="background:#7f8c8d1a; padding:1.5rem; display:flex; justify-content:center; overflow-x:auto;">
+        
+        <article class="edicto-paper" id="acta-defensa-paper" style="box-shadow: 0 4px 15px rgba(0,0,0,0.15); width:100%; max-width:216mm; background:#fff; padding:2.5cm; margin:0 auto; box-sizing:border-box;">
+          <header class="official-header" style="text-align:center; border-bottom:2px solid #0f3460; padding-bottom:12px; margin-bottom:1.5rem;">
+            <h2 class="official-univ-title" id="acta-univ-title" style="font-size:1.4rem; font-weight:900; color:#0f3460; margin:0; letter-spacing:1px;">UNIVERSIDAD TÉCNICA PRIVADA COSMOS</h2>
+            <div class="official-edicto-code" id="acta-sede" style="font-size:1rem; font-weight:700; color:#1e293b; margin:4px 0;">UNITEPC SUB SEDE EL ALTO</div>
+            <div style="font-size:1.15rem; font-weight:800; color:#0f3460; letter-spacing:1px; margin-top:6px; text-transform:uppercase;">
+              ACTA OFICIAL DE DEFENSA DE GRADO
+            </div>
+            <div class="official-subtitle" id="acta-gestion" style="font-size:0.9rem; font-weight:700; color:#64748b; margin-top:2px;">GESTIÓN ACADÉMICA 2026</div>
+          </header>
+
+          <div style="font-size:0.95rem; line-height:1.7; margin: 1.25rem 0; color:#1e293b; text-align:justify;">
+            En la ciudad de <strong id="acta-ciudad">El Alto</strong>, a horas <strong id="acta-hora">09:00</strong> del día <strong id="acta-fecha">Jueves 19 de Marzo de 2026</strong>, en dependencias de <strong id="acta-lugar">HOSPITAL "METODISTA"</strong>, se constituyó el Tribunal Evaluador Interno designado mediante Edicto Oficial <strong id="acta-edicto">EDICTO VR-EA 02-2026</strong>, para recepcionar la Defensa de Grado en la modalidad de <strong id="acta-modalidad">EXÁMEN DE GRADO</strong> del/la postulante:
+          </div>
+
+          <table class="official-table" style="margin-bottom:1.25rem; width:100%; border-collapse:collapse; border:1px solid #0f3460;">
+            <tbody>
+              <tr>
+                <td style="width:30%; font-weight:700; background:#f8fafc; text-align:left; padding:8px 10px; border:1px solid #cbd5e1;">ESTUDIANTE POSTULANTE:</td>
+                <td style="font-weight:700; text-align:left; padding:8px 10px; font-size:1rem; border:1px solid #cbd5e1;" id="acta-estudiante">LETICIA SOLEDAD MOLLINEDO HUAYGUA</td>
+              </tr>
+              <tr>
+                <td style="font-weight:700; background:#f8fafc; text-align:left; padding:8px 10px; border:1px solid #cbd5e1;">CÉDULA DE IDENTIDAD:</td>
+                <td style="text-align:left; padding:8px 10px; font-weight:600; border:1px solid #cbd5e1;" id="acta-ci">4892341 LP</td>
+              </tr>
+              <tr>
+                <td style="font-weight:700; background:#f8fafc; text-align:left; padding:8px 10px; border:1px solid #cbd5e1;">CARRERA:</td>
+                <td style="text-align:left; padding:8px 10px; font-weight:600; border:1px solid #cbd5e1;" id="acta-carrera">MEDICINA</td>
+              </tr>
+              <tr>
+                <td style="font-weight:700; background:#f8fafc; text-align:left; padding:8px 10px; border:1px solid #cbd5e1;">MODALIDAD DE GRADUACIÓN:</td>
+                <td style="text-align:left; padding:8px 10px; border:1px solid #cbd5e1;" id="acta-modalidad-tabla">EXÁMEN DE GRADO</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="font-size:0.95rem; line-height:1.6; margin-bottom:1.25rem; text-align:justify;">
+            Habiéndose concluido la exposición y la ronda de preguntas reglamentarias, el Tribunal Evaluador procedió a deliberar en privado, otorgando al postulante la siguiente calificación final:
+          </div>
+
+          <div style="display:flex; justify-content:space-around; align-items:center; border:2px solid #0f3460; border-radius:6px; padding:12px; margin-bottom:1.5rem; background:#f8fafc;">
+            <div style="text-align:center;">
+              <div style="font-size:0.8rem; color:#64748b; font-weight:700; text-transform:uppercase;">Calificación Numeral</div>
+              <div style="font-size:2rem; font-weight:900; color:#0f3460;" id="acta-nota-num">85.0 / 100</div>
+            </div>
+            <div style="height:50px; width:1px; background:#cbd5e1;"></div>
+            <div style="text-align:center;">
+              <div style="font-size:0.8rem; color:#64748b; font-weight:700; text-transform:uppercase;">Calificación Literal y Veredicto</div>
+              <div style="font-size:1.1rem; font-weight:800; color:#15803d;" id="acta-veredicto">OCHENTA Y CINCO - APROBADO POR UNANIMIDAD</div>
+            </div>
+          </div>
+
+          <div style="font-size:0.85rem; color:#475569; margin-bottom:3rem; text-align:justify;">
+            En constancia de lo actuado y en estricta conformidad con el Reglamento General de Graduación de la Universidad Técnica Privada Cosmos, firman al pie los miembros del Tribunal Examinador y la Autoridad Académica de la Sub Sede.
+          </div>
+
+          <!-- Firmas del Tribunal y Vicerrector -->
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:2.5rem; margin-top:2rem;">
+            <div style="text-align:center; border-top:1px solid #1e293b; padding-top:6px;">
+              <div style="font-weight:700; font-size:0.9rem;" id="acta-tribunal-1">Dra. Magaly Mamani Uruña</div>
+              <div style="font-size:0.8rem; color:#475569;">TRIBUNAL EVALUADOR 1</div>
+            </div>
+            <div style="text-align:center; border-top:1px solid #1e293b; padding-top:6px;">
+              <div style="font-weight:700; font-size:0.9rem;" id="acta-tribunal-2">Dra. Francy Fabiola Pacheco Quisbert</div>
+              <div style="font-size:0.8rem; color:#475569;">TRIBUNAL EVALUADOR 2</div>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:center; margin-top:2.5rem;">
+            <div style="text-align:center; border-top:1px solid #1e293b; padding-top:6px; min-width:260px;">
+              <div style="font-weight:700; font-size:0.9rem;" id="acta-vicerrector">Lic. Amílcar Bruno Cáceres Pérez</div>
+              <div style="font-size:0.8rem; font-weight:700; color:#0f3460;">VICERRECTOR</div>
+              <div style="font-size:0.75rem; color:#64748b;">UNITEPC SUB SEDE EL ALTO</div>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL: CERTIFICADO OFICIAL DE APROBACIÓN DE DEFENSA
+       ======================================================== -->
+  <div class="modal-backdrop" id="modal-certificado-defensa">
+    <div class="modal-box" style="max-width: 900px; width: 95%;">
+      <div class="modal-header">
+        <h3 class="modal-title">📜 Certificado Oficial de Defensa de Grado</h3>
+        <div style="display:flex; gap:0.5rem;">
+          <button type="button" class="btn btn-primary btn-sm" id="btn-imprimir-certificado-individual">
+            <span>🖨️</span> Imprimir Certificado (Carta 2.5cm)
+          </button>
+          <button class="modal-close" onclick="closeModal('modal-certificado-defensa')">&times;</button>
+        </div>
+      </div>
+      <div class="modal-body" style="background:#7f8c8d1a; padding:1.5rem; display:flex; justify-content:center; overflow-x:auto;">
+        
+        <article class="edicto-paper" id="certificado-defensa-paper" style="box-shadow: 0 4px 15px rgba(0,0,0,0.15); width:100%; max-width:216mm; background:#fff; padding:2.5cm; margin:0 auto; box-sizing:border-box;">
+          <header class="official-header" style="text-align:center; border-bottom:2px solid #0f3460; padding-bottom:12px; margin-bottom:1.75rem;">
+            <h2 class="official-univ-title" id="cert-univ-title" style="font-size:1.5rem; font-weight:900; color:#0f3460; margin:0; letter-spacing:1px;">UNIVERSIDAD TÉCNICA PRIVADA COSMOS</h2>
+            <div class="official-edicto-code" id="cert-sede" style="font-size:1rem; font-weight:700; color:#1e293b; margin:4px 0;">UNITEPC SUB SEDE EL ALTO</div>
+            <div style="font-size:0.85rem; font-weight:700; color:#64748b; letter-spacing:2px; margin-top:6px;">VICERRECTORADO ACADÉMICO</div>
+            <div class="official-modality" style="font-size:1.35rem; font-weight:900; color:#0f3460; letter-spacing:2px; margin:15px 0 6px 0; text-transform:uppercase;">
+              CERTIFICADO DE DEFENSA DE GRADO
+            </div>
+            <div style="font-size:0.85rem; color:#64748b; font-weight:600;" id="cert-registro-num">REGISTRO VR-EA N° 001/2026</div>
+          </header>
+
+          <div style="font-size:1rem; line-height:1.9; margin:1.75rem 0; color:#1e293b; text-align:justify; text-indent:1.5rem;">
+            El Vicerrectorado de la <strong>UNIVERSIDAD TÉCNICA PRIVADA COSMOS "UNITEPC"</strong> Sub Sede El Alto, en uso de sus legítimas facultades conferidas por el Estatuto Orgánico y el Reglamento de Graduación:
+          </div>
+
+          <div style="font-size:1.25rem; font-weight:800; text-align:center; color:#0f3460; margin:1.25rem 0; letter-spacing:3px;">
+            CERTIFICA QUE:
+          </div>
+
+          <div style="font-size:1rem; line-height:2; color:#1e293b; text-align:justify;">
+            El/La universitario/a: <strong style="font-size:1.1rem; color:#0f3460;" id="cert-estudiante">LETICIA SOLEDAD MOLLINEDO HUAYGUA</strong>, con Cédula de Identidad <strong id="cert-ci">4892341 LP</strong>, egresado/a regular de la Carrera de <strong id="cert-carrera">MEDICINA</strong>, se presentó a la Defensa de Grado en la modalidad de <strong id="cert-modalidad">EXÁMEN DE GRADO</strong>, en fecha <strong id="cert-fecha">19 de Marzo de 2026</strong>, obteniendo la calificación final de <strong id="cert-nota">85.0 (OCHENTA Y CINCO)</strong> puntos sobre 100, habiendo sido declarado/a:
+          </div>
+
+          <div style="text-align:center; margin:1.5rem 0; padding:10px; border:2px dashed #0f3460; border-radius:6px; background:#f0fdf4;">
+            <span style="font-size:1.25rem; font-weight:900; color:#15803d; letter-spacing:1px;" id="cert-veredicto">
+              APROBADO/A POR UNANIMIDAD
+            </span>
+          </div>
+
+          <div style="font-size:0.9rem; line-height:1.7; color:#475569; text-align:justify; margin:1.25rem 0 2.5rem 0;">
+            Conforme consta en el Edicto Oficial <strong id="cert-edicto">EDICTO VR-EA 02-2026</strong> y en los Libros de Actas de Grado custodiados en el Vicerrectorado. A solicitud del/la interesado/a para los fines que en derecho correspondan, se extiende el presente Certificado en la ciudad de <span id="cert-ciudad-fecha">El Alto</span>.
+          </div>
+
+          <!-- Firma y Sello Digital -->
+          <div style="display:flex; justify-content:center; align-items:center; gap:2.5rem; margin-top:2.5rem;">
+            <div style="text-align:center; min-width:280px; border-top:1px solid #1e293b; padding-top:8px;">
+              <div style="font-weight:700; font-size:1rem;" id="cert-authority-name">Lic. Amílcar Bruno Cáceres Pérez</div>
+              <div style="font-size:0.85rem; font-weight:700; color:#0f3460;" id="cert-authority-cargo">VICERRECTOR</div>
+              <div style="font-size:0.8rem; color:#64748b;" id="cert-authority-sede">UNITEPC SUB SEDE EL ALTO</div>
+            </div>
+          </div>
+        </article>
+
       </div>
     </div>
   </div>

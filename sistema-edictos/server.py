@@ -82,10 +82,23 @@ def init_db():
         estado TEXT NOT NULL DEFAULT 'Programada', -- 'Programada', 'Aprobada', 'Reprobada', 'Postergada'
         nota REAL DEFAULT 0,
         observaciones TEXT DEFAULT '',
+        celular TEXT DEFAULT '',
+        ci TEXT DEFAULT '',
+        ci_expedido TEXT DEFAULT '',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (edicto_id) REFERENCES edictos(id) ON DELETE SET NULL
     )
     """)
+
+    # Migración: Verificar si existen columnas celular, ci, ci_expedido en defensas
+    cursor.execute("PRAGMA table_info(defensas)")
+    defensas_cols = [row["name"] for row in cursor.fetchall()]
+    if "celular" not in defensas_cols:
+        cursor.execute("ALTER TABLE defensas ADD COLUMN celular TEXT DEFAULT ''")
+    if "ci" not in defensas_cols:
+        cursor.execute("ALTER TABLE defensas ADD COLUMN ci TEXT DEFAULT ''")
+    if "ci_expedido" not in defensas_cols:
+        cursor.execute("ALTER TABLE defensas ADD COLUMN ci_expedido TEXT DEFAULT ''")
 
     # Configuraciones por defecto
     default_configs = {
@@ -318,9 +331,9 @@ class EdictosRequestHandler(http.server.SimpleHTTPRequestHandler):
 
                     search = query.get("q", [None])[0]
                     if search:
-                        sql += " AND (d.estudiante LIKE ? OR d.carrera LIKE ? OR d.tribunal_1 LIKE ? OR d.tribunal_2 LIKE ?)"
+                        sql += " AND (d.estudiante LIKE ? OR d.carrera LIKE ? OR d.ci LIKE ? OR d.tribunal_1 LIKE ? OR d.tribunal_2 LIKE ?)"
                         wildcard = f"%{search}%"
-                        params.extend([wildcard, wildcard, wildcard, wildcard])
+                        params.extend([wildcard, wildcard, wildcard, wildcard, wildcard])
 
                     sql += " ORDER BY d.gestion DESC, d.fecha_defensa DESC, d.hora ASC"
                     cursor.execute(sql, params)
@@ -333,7 +346,7 @@ class EdictosRequestHandler(http.server.SimpleHTTPRequestHandler):
                     gestion = query.get("gestion", ["2026"])[0]
                     cursor.execute("""
                     SELECT 
-                        d.id, d.gestion, d.estudiante, d.carrera, d.modalidad, 
+                        d.id, d.gestion, d.estudiante, d.ci, d.ci_expedido, d.celular, d.carrera, d.modalidad, 
                         d.fecha_defensa_texto as fecha, d.hora, d.lugar, 
                         d.tribunal_1, d.tribunal_2, d.estado, d.nota, 
                         e.codigo as edicto, d.observaciones
@@ -347,7 +360,7 @@ class EdictosRequestHandler(http.server.SimpleHTTPRequestHandler):
                     output = io.StringIO()
                     writer = csv.writer(output)
                     writer.writerow([
-                        "ID", "Gestión", "Estudiante", "Carrera", "Modalidad",
+                        "ID", "Gestión", "Estudiante", "C.I.", "Expedido", "Celular / WhatsApp", "Carrera", "Modalidad",
                         "Fecha Defensa", "Hora", "Lugar", "Tribunal 1", "Tribunal 2",
                         "Estado", "Calificación", "Edicto Asignado", "Observaciones"
                     ])
@@ -468,12 +481,14 @@ class EdictosRequestHandler(http.server.SimpleHTTPRequestHandler):
 
                 cursor.execute("""
                 INSERT INTO defensas (
-                    edicto_id, estudiante, carrera, modalidad, fecha_defensa, fecha_defensa_texto,
-                    hora, lugar, tribunal_1, tribunal_2, tribunal_externo, gestion, estado, nota, observaciones
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    edicto_id, estudiante, ci, ci_expedido, carrera, modalidad, fecha_defensa, fecha_defensa_texto,
+                    hora, lugar, tribunal_1, tribunal_2, tribunal_externo, gestion, estado, nota, observaciones, celular
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
                     body.get("edicto_id"),
                     estudiante,
+                    body.get("ci", "").strip(),
+                    body.get("ci_expedido", "").strip().upper(),
                     carrera,
                     body.get("modalidad", "EXÁMEN DE GRADO"),
                     body.get("fecha_defensa", datetime.now().strftime("%Y-%m-%d")),
@@ -486,11 +501,57 @@ class EdictosRequestHandler(http.server.SimpleHTTPRequestHandler):
                     body.get("gestion", "2026"),
                     body.get("estado", "Programada"),
                     float(body.get("nota", 0.0) or 0.0),
-                    body.get("observaciones", "")
+                    body.get("observaciones", ""),
+                    body.get("celular", "").strip()
                 ))
                 new_id = cursor.lastrowid
                 conn.commit()
                 self.send_json({"id": new_id, "message": "Defensa registrada exitosamente"}, 201)
+                return
+
+            # 2.1 Carga masiva de defensas (batch desde Excel / CSV)
+            if path == "/api/defensas/batch":
+                registros = body.get("defensas", [])
+                if not registros or not isinstance(registros, list):
+                    self.send_error_json("La lista de defensas está vacía o es inválida")
+                    return
+
+                insertados = 0
+                for r in registros:
+                    est = str(r.get("estudiante", "")).strip().upper()
+                    carr = str(r.get("carrera", "")).strip().upper()
+                    if not est or not carr:
+                        continue
+
+                    cursor.execute("""
+                    INSERT INTO defensas (
+                        edicto_id, estudiante, ci, ci_expedido, carrera, modalidad, fecha_defensa, fecha_defensa_texto,
+                        hora, lugar, tribunal_1, tribunal_2, tribunal_externo, gestion, estado, nota, observaciones, celular
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (
+                        r.get("edicto_id"),
+                        est,
+                        str(r.get("ci", "")).strip(),
+                        str(r.get("ci_expedido", "")).strip().upper(),
+                        carr,
+                        r.get("modalidad", "EXÁMEN DE GRADO"),
+                        r.get("fecha_defensa", datetime.now().strftime("%Y-%m-%d")),
+                        r.get("fecha_defensa_texto", ""),
+                        r.get("hora", "09:00"),
+                        r.get("lugar", "CONSEJO ACADÉMICO"),
+                        r.get("tribunal_1", ""),
+                        r.get("tribunal_2", ""),
+                        r.get("tribunal_externo", ""),
+                        str(r.get("gestion", "2026")).strip(),
+                        r.get("estado", "Programada"),
+                        float(r.get("nota", 0.0) or 0.0),
+                        r.get("observaciones", ""),
+                        str(r.get("celular", "")).strip()
+                    ))
+                    insertados += 1
+
+                conn.commit()
+                self.send_json({"insertados": insertados, "message": f"Se registraron {insertados} defensas exitosamente"}, 201)
                 return
 
             # 3. Guardar configuración
@@ -535,15 +596,16 @@ class EdictosRequestHandler(http.server.SimpleHTTPRequestHandler):
                 for d in defensas:
                     cursor.execute("""
                     INSERT INTO defensas (
-                        id, edicto_id, estudiante, carrera, modalidad, fecha_defensa, fecha_defensa_texto,
-                        hora, lugar, tribunal_1, tribunal_2, tribunal_externo, gestion, estado, nota, observaciones
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        id, edicto_id, estudiante, ci, ci_expedido, carrera, modalidad, fecha_defensa, fecha_defensa_texto,
+                        hora, lugar, tribunal_1, tribunal_2, tribunal_externo, gestion, estado, nota, observaciones, celular
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """, (
-                        d.get("id"), d.get("edicto_id"), d.get("estudiante"), d.get("carrera"),
+                        d.get("id"), d.get("edicto_id"), d.get("estudiante"),
+                        d.get("ci", ""), d.get("ci_expedido", ""), d.get("carrera"),
                         d.get("modalidad"), d.get("fecha_defensa"), d.get("fecha_defensa_texto"),
                         d.get("hora"), d.get("lugar"), d.get("tribunal_1"), d.get("tribunal_2"),
                         d.get("tribunal_externo", ""), d.get("gestion"), d.get("estado"),
-                        d.get("nota", 0), d.get("observaciones", "")
+                        d.get("nota", 0), d.get("observaciones", ""), d.get("celular", "")
                     ))
 
                 conn.commit()
@@ -618,6 +680,8 @@ class EdictosRequestHandler(http.server.SimpleHTTPRequestHandler):
                 UPDATE defensas SET
                     edicto_id = COALESCE(?, edicto_id),
                     estudiante = UPPER(COALESCE(?, estudiante)),
+                    ci = COALESCE(?, ci),
+                    ci_expedido = UPPER(COALESCE(?, ci_expedido)),
                     carrera = UPPER(COALESCE(?, carrera)),
                     modalidad = COALESCE(?, modalidad),
                     fecha_defensa = COALESCE(?, fecha_defensa),
@@ -630,14 +694,17 @@ class EdictosRequestHandler(http.server.SimpleHTTPRequestHandler):
                     gestion = COALESCE(?, gestion),
                     estado = COALESCE(?, estado),
                     nota = COALESCE(?, nota),
-                    observaciones = COALESCE(?, observaciones)
+                    observaciones = COALESCE(?, observaciones),
+                    celular = COALESCE(?, celular)
                 WHERE id = ?
                 """, (
-                    body.get("edicto_id"), body.get("estudiante"), body.get("carrera"),
+                    body.get("edicto_id"), body.get("estudiante"),
+                    body.get("ci"), body.get("ci_expedido"),
+                    body.get("carrera"),
                     body.get("modalidad"), body.get("fecha_defensa"), body.get("fecha_defensa_texto"),
                     body.get("hora"), body.get("lugar"), body.get("tribunal_1"), body.get("tribunal_2"),
                     body.get("tribunal_externo"), body.get("gestion"), body.get("estado"),
-                    body.get("nota"), body.get("observaciones"),
+                    body.get("nota"), body.get("observaciones"), body.get("celular"),
                     defensa_id
                 ))
                 conn.commit()

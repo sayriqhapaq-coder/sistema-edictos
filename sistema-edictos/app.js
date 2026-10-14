@@ -49,6 +49,9 @@ const SEED_DATA = {
       id: 1,
       edicto_id: 1,
       estudiante: "LETICIA SOLEDAD MOLLINEDO HUAYGUA",
+      ci: "4892341",
+      ci_expedido: "LP",
+      celular: "71234567",
       carrera: "MEDICINA",
       modalidad: "EXÁMEN DE GRADO",
       fecha_defensa: "2026-03-19",
@@ -66,6 +69,9 @@ const SEED_DATA = {
       id: 2,
       edicto_id: 1,
       estudiante: "JUAN CARLOS MIXTO LAURA",
+      ci: "5948312",
+      ci_expedido: "LP",
+      celular: "72345678",
       carrera: "MEDICINA",
       modalidad: "EXÁMEN DE GRADO",
       fecha_defensa: "2026-03-19",
@@ -83,6 +89,9 @@ const SEED_DATA = {
       id: 3,
       edicto_id: 1,
       estudiante: "TALIA JULIA RIVERA YUGAR",
+      ci: "6849201",
+      ci_expedido: "EA",
+      celular: "73456789",
       carrera: "MEDICINA",
       modalidad: "EXÁMEN DE GRADO",
       fecha_defensa: "2026-03-19",
@@ -100,6 +109,9 @@ const SEED_DATA = {
       id: 4,
       edicto_id: 1,
       estudiante: "CARLOS JENSEN URIONA POZA",
+      ci: "5192834",
+      ci_expedido: "CB",
+      celular: "74567890",
       carrera: "INGENIERIA DE SONIDO",
       modalidad: "EXÁMEN DE GRADO",
       fecha_defensa: "2026-03-19",
@@ -117,6 +129,9 @@ const SEED_DATA = {
       id: 5,
       edicto_id: 1,
       estudiante: "JUAN ESCOBAR MENDOZA",
+      ci: "7029384",
+      ci_expedido: "LP",
+      celular: "75678901",
       carrera: "INGENIERIA DE SONIDO",
       modalidad: "EXÁMEN DE GRADO",
       fecha_defensa: "2026-03-19",
@@ -457,9 +472,29 @@ function renderDefensasTable() {
     const badgeClass = `badge-${d.estado ? d.estado.toLowerCase() : 'programada'}`;
     const fechaText = d.fecha_defensa_texto || formatearFechaTextoDefensa(d.fecha_defensa);
 
+    // Enlace directo de notificación por WhatsApp si tiene celular
+    const cleanPhone = (d.celular || "").replace(/\D/g, "");
+    const waNumber = cleanPhone ? (cleanPhone.startsWith("591") ? cleanPhone : `591${cleanPhone}`) : "";
+    const waMensaje = encodeURIComponent(`Estimado/a ${d.estudiante}, UNITEPC Sub Sede El Alto le notifica que su Defensa de Grado ha sido programada para el ${fechaText} a horas ${d.hora} en ${d.lugar}.`);
+    const waPill = cleanPhone ? `
+      <div style="margin-top:3px;">
+        <a href="https://wa.me/${waNumber}?text=${waMensaje}" target="_blank" 
+           style="display:inline-flex; align-items:center; gap:3px; background:#dcfce7; color:#15803d; border:1px solid #bbf7d0; border-radius:4px; padding:1px 5px; font-size:0.75rem; text-decoration:none; font-weight:600;" 
+           title="Enviar citación oficial por WhatsApp">
+          📱 <span>${escapeHtml(d.celular)}</span>
+        </a>
+      </div>
+    ` : '';
+
+    const ciText = d.ci ? `<small style="display:block; color:#475569; font-weight:600; font-size:0.75rem;">C.I. ${escapeHtml(d.ci)} ${escapeHtml(d.ci_expedido || '')}</small>` : '';
+
     return `
       <tr>
-        <td><strong>${escapeHtml(d.estudiante)}</strong></td>
+        <td>
+          <strong>${escapeHtml(d.estudiante)}</strong>
+          ${ciText}
+          ${waPill}
+        </td>
         <td>${escapeHtml(d.carrera)}</td>
         <td><small>${escapeHtml(d.modalidad || 'EXÁMEN DE GRADO')}</small></td>
         <td>${escapeHtml(fechaText)} <br><small style="color:#6b7280;">${escapeHtml(d.hora)} hrs</small></td>
@@ -476,16 +511,22 @@ function renderDefensasTable() {
         </td>
         <td><span class="badge ${badgeClass}">${escapeHtml(d.estado)}</span></td>
         <td style="text-align:center;">
-          <div style="display:flex; justify-content:center; gap:0.35rem;">
+          <div style="display:flex; justify-content:center; gap:0.3rem;">
             ${d.estado !== 'Aprobada' ? `
-              <button class="btn btn-outline btn-sm" style="color:var(--success); padding:3px 7px;" onclick="marcarAprobada(${d.id})" title="Marcar como Aprobada">
+              <button class="btn btn-outline btn-sm" style="color:var(--success); padding:3px 6px;" onclick="marcarAprobada(${d.id})" title="Calificar / Aprobar">
                 ✓
               </button>
             ` : ''}
-            <button class="btn btn-outline btn-sm" style="padding:3px 7px;" onclick="editarDefensa(${d.id})" title="Editar datos">
+            <button class="btn btn-outline btn-sm" style="color:#0f3460; padding:3px 6px;" onclick="verActaDefensa(${d.id})" title="Imprimir Acta de Calificación Oficial">
+              📄
+            </button>
+            <button class="btn btn-outline btn-sm" style="color:#16a34a; padding:3px 6px;" onclick="verCertificadoDefensa(${d.id})" title="Emitir Certificado de Aprobación">
+              📜
+            </button>
+            <button class="btn btn-outline btn-sm" style="padding:3px 6px;" onclick="editarDefensa(${d.id})" title="Editar datos">
               ✏️
             </button>
-            <button class="btn btn-outline btn-sm" style="color:var(--danger); padding:3px 7px;" onclick="eliminarDefensa(${d.id})" title="Eliminar">
+            <button class="btn btn-outline btn-sm" style="color:var(--danger); padding:3px 6px;" onclick="eliminarDefensa(${d.id})" title="Eliminar">
               🗑️
             </button>
           </div>
@@ -493,6 +534,19 @@ function renderDefensasTable() {
       </tr>
     `;
   }).join("");
+}
+
+// Obtener todas las gestiones disponibles desde 2019 hasta la actual/futuras + personalizadas
+function obtenerGestionesDisponibles() {
+  const anioActual = new Date().getFullYear();
+  const anosBase = [];
+  for (let a = anioActual + 1; a >= 2019; a--) {
+    anosBase.push(String(a));
+  }
+  const anosDatos = state.defensas.map(d => d.gestion).concat(state.edictos.map(e => e.gestion));
+  return [...new Set([...anosBase, ...anosDatos])].filter(Boolean).sort((a, b) => {
+    return b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' });
+  });
 }
 
 function renderFiltrosCarrerasYEdictos() {
@@ -525,11 +579,27 @@ function renderFiltrosCarrerasYEdictos() {
     });
   }
 
-  // Gestiones disponibles en selector de reportes
-  const gestiones = [...new Set([...state.defensas.map(d => d.gestion), "2026", "2025"])].filter(Boolean).sort().reverse();
+  // Gestiones disponibles dinámicamente desde 2019
+  const gestiones = obtenerGestionesDisponibles();
+
+  // 1. Selector de filtro en vista de Defensas
+  const selectFiltroGestion = document.getElementById("filtro-gestion");
+  if (selectFiltroGestion) {
+    const valActual = selectFiltroGestion.value;
+    selectFiltroGestion.innerHTML = '<option value="">Todas las gestiones (2019 - 2026+)</option>';
+    gestiones.forEach(g => {
+      const opt = document.createElement("option");
+      opt.value = g;
+      opt.textContent = `Gestión ${g}`;
+      if (g === valActual) opt.selected = true;
+      selectFiltroGestion.appendChild(opt);
+    });
+  }
+
+  // 2. Selector en vista de Reportes y Titulados
   const selectGestionReporte = document.getElementById("reporte-select-gestion");
   if (selectGestionReporte) {
-    const valActual = selectGestionReporte.value || state.activeGestion;
+    const valActual = selectGestionReporte.value || state.activeGestion || "2026";
     selectGestionReporte.innerHTML = "";
     gestiones.forEach(g => {
       const opt = document.createElement("option");
@@ -737,6 +807,12 @@ function openModalNuevaDefensa() {
   document.getElementById("def-fecha-texto").value = formatearFechaTextoDefensa(hoy);
   document.getElementById("def-hora").value = "09:00";
   document.getElementById("def-lugar").value = 'HOSPITAL "METODISTA"';
+  const celInput = document.getElementById("def-celular");
+  if (celInput) celInput.value = "";
+  const ciInput = document.getElementById("def-ci");
+  if (ciInput) ciInput.value = "";
+  const ciExpInput = document.getElementById("def-ci-exp");
+  if (ciExpInput) ciExpInput.value = "LP";
 
   // Llenar selector de edictos
   const selEdicto = document.getElementById("def-edicto-id");
@@ -759,6 +835,12 @@ function editarDefensa(id) {
   document.getElementById("modal-defensa-title").textContent = "Editar Datos de la Defensa";
   document.getElementById("defensa-id").value = d.id;
   document.getElementById("def-estudiante").value = d.estudiante;
+  const ciInput = document.getElementById("def-ci");
+  if (ciInput) ciInput.value = d.ci || "";
+  const ciExpInput = document.getElementById("def-ci-exp");
+  if (ciExpInput) ciExpInput.value = d.ci_expedido || "LP";
+  const celInput = document.getElementById("def-celular");
+  if (celInput) celInput.value = d.celular || "";
   document.getElementById("def-carrera").value = d.carrera;
   document.getElementById("def-modalidad").value = d.modalidad || "EXÁMEN DE GRADO";
   document.getElementById("def-fecha").value = d.fecha_defensa;
@@ -789,9 +871,15 @@ async function guardarDefensa(e) {
   e.preventDefault();
   const idStr = document.getElementById("defensa-id").value;
   const isEdit = !!idStr;
+  const celVal = document.getElementById("def-celular") ? document.getElementById("def-celular").value.trim() : "";
+  const ciVal = document.getElementById("def-ci") ? document.getElementById("def-ci").value.trim() : "";
+  const ciExpVal = document.getElementById("def-ci-exp") ? document.getElementById("def-ci-exp").value : "LP";
 
   const data = {
     estudiante: document.getElementById("def-estudiante").value.trim().toUpperCase(),
+    ci: ciVal,
+    ci_expedido: ciExpVal,
+    celular: celVal,
     carrera: document.getElementById("def-carrera").value.trim().toUpperCase(),
     modalidad: document.getElementById("def-modalidad").value,
     fecha_defensa: document.getElementById("def-fecha").value,
@@ -1159,6 +1247,377 @@ function restaurarDesdeJson(event) {
 }
 
 // ==========================================
+// MÓDULOS INSTITUCIONALES AVANZADOS
+// ACTA DE CALIFICACIÓN, CERTIFICADO, CARGA MASIVA Y BÚSQUEDA GLOBAL
+// ==========================================
+
+function numeroALetras(num) {
+  const n = Math.round(Number(num) || 0);
+  if (n <= 0) return "CERO";
+  if (n === 100) return "CIEN";
+  
+  const unidades = ["", "UNO", "DOS", "TRES", "CUATRO", "CINCO", "SEIS", "SIETE", "OCHO", "NUEVE"];
+  const especiales = {
+    10: "DIEZ", 11: "ONCE", 12: "DOCE", 13: "TRECE", 14: "CATORCE", 15: "QUINCE",
+    16: "DIECISÉIS", 17: "DIECISIETE", 18: "DIECIOCHO", 19: "DIECINUEVE",
+    20: "VEINTE", 21: "VEINTIUNO", 22: "VEINTIDÓS", 23: "VEINTITRÉS", 24: "VEINTICUATRO",
+    25: "VEINTICINCO", 26: "VEINTISÉIS", 27: "VEINTISIETE", 28: "VEINTIOCHO", 29: "VEINTINUEVE"
+  };
+  const decenas = ["", "", "", "TREINTA", "CUARENTA", "CINCUENTA", "SESENTA", "SETENTA", "OCHENTA", "NOVENTA"];
+  
+  if (especiales[n]) return especiales[n];
+  if (n < 10) return unidades[n];
+  
+  const d = Math.floor(n / 10);
+  const u = n % 10;
+  if (u === 0) return decenas[d];
+  return `${decenas[d]} Y ${unidades[u]}`;
+}
+
+function calcularVeredicto(nota, estado) {
+  const n = parseFloat(nota) || 0;
+  if (n >= 90) return "APROBADO/A CON FELICITACIÓN";
+  if (n >= 71) return "APROBADO/A POR UNANIMIDAD";
+  if (n >= 51) return "APROBADO/A POR MAYORÍA";
+  if (estado === "Aprobada") return "APROBADO/A";
+  return "REPROBADO/A";
+}
+
+// 1. ACTA DE CALIFICACIÓN
+function verActaDefensa(id) {
+  const d = state.defensas.find(x => x.id === id);
+  if (!d) return;
+
+  const edicto = state.edictos.find(e => Number(e.id) === Number(d.edicto_id));
+  const fechaText = d.fecha_defensa_texto || formatearFechaTextoDefensa(d.fecha_defensa);
+  const notaNum = d.nota ? Number(d.nota) : (d.estado === 'Aprobada' ? 80 : 0);
+  const notaLit = numeroALetras(notaNum);
+  const veredicto = calcularVeredicto(notaNum, d.estado);
+
+  document.getElementById("acta-univ-title").textContent = state.config.universidad || "UNIVERSIDAD TÉCNICA PRIVADA COSMOS";
+  document.getElementById("acta-sede").textContent = state.config.sede || "UNITEPC SUB SEDE EL ALTO";
+  document.getElementById("acta-gestion").textContent = `GESTIÓN ACADÉMICA ${d.gestion || state.config.gestion_actual}`;
+  
+  document.getElementById("acta-ciudad").textContent = edicto ? (edicto.ciudad || state.config.ciudad_default) : state.config.ciudad_default;
+  document.getElementById("acta-hora").textContent = d.hora || "09:00";
+  document.getElementById("acta-fecha").textContent = fechaText;
+  document.getElementById("acta-lugar").textContent = d.lugar || "CONSEJO ACADÉMICO";
+  document.getElementById("acta-edicto").textContent = edicto ? edicto.codigo : "(EDICTO VR-EA OFICIAL)";
+  document.getElementById("acta-modalidad").textContent = d.modalidad || "EXÁMEN DE GRADO";
+
+  document.getElementById("acta-estudiante").textContent = d.estudiante;
+  document.getElementById("acta-ci").textContent = d.ci ? `${d.ci} ${d.ci_expedido || ''}` : "S/N";
+  document.getElementById("acta-carrera").textContent = d.carrera;
+  document.getElementById("acta-modalidad-tabla").textContent = d.modalidad || "EXÁMEN DE GRADO";
+
+  document.getElementById("acta-nota-num").textContent = `${notaNum.toFixed(1)} / 100`;
+  document.getElementById("acta-veredicto").textContent = `${notaLit} - ${veredicto}`;
+
+  document.getElementById("acta-tribunal-1").textContent = d.tribunal_1 || "Tribunal 1";
+  document.getElementById("acta-tribunal-2").textContent = d.tribunal_2 || "Tribunal 2";
+  document.getElementById("acta-vicerrector").textContent = state.config.autoridad_nombre || "Lic. Amílcar Bruno Cáceres Pérez";
+
+  openModal("modal-acta-defensa");
+}
+
+function imprimirActaIndividual() {
+  document.body.classList.remove("print-mode-reporte", "print-mode-certificado");
+  document.body.classList.add("print-mode-acta");
+  window.print();
+}
+
+// 2. CERTIFICADO DE DEFENSA
+function verCertificadoDefensa(id) {
+  const d = state.defensas.find(x => x.id === id);
+  if (!d) return;
+
+  const edicto = state.edictos.find(e => Number(e.id) === Number(d.edicto_id));
+  const fechaText = d.fecha_defensa_texto || formatearFechaTextoDefensa(d.fecha_defensa);
+  const notaNum = d.nota ? Number(d.nota) : (d.estado === 'Aprobada' ? 80 : 0);
+  const notaLit = numeroALetras(notaNum);
+  const veredicto = calcularVeredicto(notaNum, d.estado);
+
+  document.getElementById("cert-univ-title").textContent = state.config.universidad || "UNIVERSIDAD TÉCNICA PRIVADA COSMOS";
+  document.getElementById("cert-sede").textContent = state.config.sede || "UNITEPC SUB SEDE EL ALTO";
+  document.getElementById("cert-registro-num").textContent = `REGISTRO VR-EA N° ${String(d.id).padStart(3, '0')}/${d.gestion || '2026'}`;
+
+  document.getElementById("cert-estudiante").textContent = d.estudiante;
+  document.getElementById("cert-ci").textContent = d.ci ? `${d.ci} ${d.ci_expedido || ''}` : "S/N";
+  document.getElementById("cert-carrera").textContent = d.carrera;
+  document.getElementById("cert-modalidad").textContent = d.modalidad || "EXÁMEN DE GRADO";
+  document.getElementById("cert-fecha").textContent = fechaText;
+  document.getElementById("cert-nota").textContent = `${notaNum.toFixed(1)} (${notaLit})`;
+  document.getElementById("cert-veredicto").textContent = veredicto;
+  document.getElementById("cert-edicto").textContent = edicto ? edicto.codigo : "EDICTO OFICIAL VR-EA";
+
+  const hoy = new Date().toISOString().split("T")[0];
+  document.getElementById("cert-ciudad-fecha").textContent = formatearFechaEmisionOficial(hoy, state.config.ciudad_default || "El Alto");
+
+  document.getElementById("cert-authority-name").textContent = state.config.autoridad_nombre || "Lic. Amílcar Bruno Cáceres Pérez";
+  document.getElementById("cert-authority-cargo").textContent = state.config.autoridad_cargo || "VICERRECTOR";
+  document.getElementById("cert-authority-sede").textContent = state.config.sede || "UNITEPC SUB SEDE EL ALTO";
+
+  openModal("modal-certificado-defensa");
+}
+
+function imprimirCertificadoIndividual() {
+  document.body.classList.remove("print-mode-reporte", "print-mode-acta");
+  document.body.classList.add("print-mode-certificado");
+  window.print();
+}
+
+// 3. CARGA MASIVA DESDE EXCEL
+let registrosMasivosPendientes = [];
+
+function openModalCargaMasiva() {
+  document.getElementById("txt-carga-masiva").value = "";
+  document.getElementById("badge-filas-detectadas").textContent = "";
+  document.getElementById("preview-masivo-container").style.display = "none";
+  document.getElementById("btn-confirmar-carga-masiva").style.display = "none";
+  registrosMasivosPendientes = [];
+  openModal("modal-carga-masiva");
+}
+
+function descargarPlantillaExcel() {
+  const encabezado = "ESTUDIANTE;CI;EXP;CARRERA;MODALIDAD;FECHA;HORA;LUGAR;TRIBUNAL 1;TRIBUNAL 2;CELULAR;GESTION;ESTADO;NOTA\n";
+  const ejemplos = [
+    "QUISPE MAMANI CARLOS;4892341;LP;MEDICINA;EXÁMEN DE GRADO;2019-06-15;09:00;CONSEJO ACADÉMICO;Dr. Walter Ramos;Dra. Carmen Lopez;71234567;2019;Aprobada;85",
+    "FLORES CHOQUE MARIA;5948321;EA;ODONTOLOGÍA;EXÁMEN DE GRADO;2020-04-10;10:30;CLINICA ODONTOLÓGICA;Dra. Rosario Flores;Dr. Victor Mendoza;72345678;2020;Aprobada;90",
+    "CONDORI APAZA JUAN;6109283;LP;INGENIERIA DE SISTEMAS;PROYECTO DE GRADO;2021-11-20;14:00;LABORATORIO SISTEMAS;Ing. Jorge Castro;Ing. Silvia Ruiz;73456789;2021;Aprobada;88"
+  ].join("\n");
+
+  const contenido = "\uFEFF" + encabezado + ejemplos;
+  const blob = new Blob([contenido], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", "plantilla_defensas_unitepc.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function cargarEjemploMasivo() {
+  const ej = `LETICIA SOLEDAD MOLLINEDO\t4892341\tLP\tMEDICINA\tEXÁMEN DE GRADO\t2019-05-18\t09:00\tHOSPITAL "METODISTA"\tDra. Magaly Mamani\tDra. Francy Pacheco\t71234567\t2019\tAprobada\t85
+JUAN CARLOS MIXTO LAURA\t5948312\tLP\tMEDICINA\tEXÁMEN DE GRADO\t2020-09-12\t10:00\tHOSPITAL "METODISTA"\tDra. Magaly Mamani\tDra. Francy Pacheco\t72345678\t2020\tAprobada\t88
+TALIA JULIA RIVERA YUGAR\t6849201\tEA\tODONTOLOGÍA\tEXÁMEN DE GRADO\t2021-03-24\t11:00\tCONSEJO ACADÉMICO\tDr. Juan Perez\tDra. Elena Gomez\t73456789\t2021\tAprobada\t90
+CARLOS JENSEN URIONA\t5192834\tCB\tINGENIERIA DE SONIDO\tTESIS DE GRADO\t2022-10-15\t14:00\tAUDITORIO CENTRAL\tIng. Daniel Condorcet\tIng. Sergio Crespo\t74567890\t2022\tAprobada\t92
+JUAN ESCOBAR MENDOZA\t7029384\tLP\tDERECHO\tEXÁMEN DE GRADO\t2023-06-20\t15:00\tAULA MAGNA\tDr. Marco Antonio\tDr. Roberto Silva\t75678901\t2023\tAprobada\t86`;
+  document.getElementById("txt-carga-masiva").value = ej;
+  procesarTextoMasivo();
+}
+
+function procesarTextoMasivo() {
+  const raw = document.getElementById("txt-carga-masiva").value.trim();
+  if (!raw) {
+    alert("Por favor ingrese o pegue las filas a importar.");
+    return;
+  }
+
+  const lines = raw.split("\n").map(l => l.trim()).filter(Boolean);
+  const parsed = [];
+
+  for (let line of lines) {
+    if (line.toLowerCase().includes("estudiante") && line.toLowerCase().includes("carrera")) {
+      continue;
+    }
+
+    let cols = [];
+    if (line.includes("\t")) {
+      cols = line.split("\t");
+    } else if (line.includes(";")) {
+      cols = line.split(";");
+    } else if (line.includes(",")) {
+      cols = line.split(",");
+    } else {
+      cols = [line];
+    }
+
+    cols = cols.map(c => c.trim().replace(/^["']|["']$/g, ""));
+    if (cols.length < 2) continue;
+
+    const estudiante = (cols[0] || "").toUpperCase();
+    const ci = cols[1] || "";
+    const ci_expedido = (cols[2] || "LP").toUpperCase();
+    const carrera = (cols[3] || "MEDICINA").toUpperCase();
+    const modalidad = cols[4] || "EXÁMEN DE GRADO";
+    const fecha = cols[5] || new Date().toISOString().split("T")[0];
+    const hora = cols[6] || "09:00";
+    const lugar = (cols[7] || 'CONSEJO ACADÉMICO').toUpperCase();
+    const tribunal_1 = cols[8] || "";
+    const tribunal_2 = cols[9] || "";
+    const celular = cols[10] || "";
+    const gestion = cols[11] || "2026";
+    const estado = cols[12] || "Aprobada";
+    const nota = parseFloat(cols[13]) || (estado === "Aprobada" ? 80.0 : 0.0);
+
+    if (estudiante) {
+      parsed.push({
+        estudiante,
+        ci,
+        ci_expedido,
+        carrera,
+        modalidad,
+        fecha_defensa: fecha,
+        fecha_defensa_texto: formatearFechaTextoDefensa(fecha),
+        hora,
+        lugar,
+        tribunal_1,
+        tribunal_2,
+        celular,
+        gestion,
+        estado,
+        nota
+      });
+    }
+  }
+
+  registrosMasivosPendientes = parsed;
+  const count = parsed.length;
+
+  document.getElementById("badge-filas-detectadas").textContent = `✓ ${count} filas listas para importar`;
+  const tbody = document.getElementById("tbody-preview-masivo");
+
+  if (count === 0) {
+    document.getElementById("preview-masivo-container").style.display = "none";
+    document.getElementById("btn-confirmar-carga-masiva").style.display = "none";
+    alert("No se pudieron detectar registros válidos. Verifique que contengan al menos Nombre y Carrera.");
+    return;
+  }
+
+  tbody.innerHTML = parsed.map((r, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td><strong>${escapeHtml(r.estudiante)}</strong></td>
+      <td>${escapeHtml(r.ci)} ${escapeHtml(r.ci_expedido)}</td>
+      <td>${escapeHtml(r.carrera)}</td>
+      <td><span class="badge" style="background:#e2e8f0; color:#334155;">${escapeHtml(r.gestion)}</span></td>
+      <td>${escapeHtml(r.fecha_defensa)} ${escapeHtml(r.hora)}</td>
+      <td><small>${escapeHtml(r.tribunal_1)}<br>${escapeHtml(r.tribunal_2)}</small></td>
+      <td><strong>${r.nota || '-'}</strong></td>
+      <td>${r.celular ? `📱 ${escapeHtml(r.celular)}` : '-'}</td>
+    </tr>
+  `).join("");
+
+  document.getElementById("preview-masivo-container").style.display = "block";
+  document.getElementById("btn-confirmar-carga-masiva").style.display = "inline-flex";
+}
+
+async function confirmarCargaMasiva() {
+  if (registrosMasivosPendientes.length === 0) return;
+
+  try {
+    if (state.isApiAvailable) {
+      const res = await fetchJson("/api/defensas/batch", {
+        method: "POST",
+        body: JSON.stringify({ defensas: registrosMasivosPendientes })
+      });
+      await loadData();
+      showToast(`¡Se importaron ${res.insertados || registrosMasivosPendientes.length} defensas exitosamente!`);
+    } else {
+      let startId = state.defensas.length ? Math.max(...state.defensas.map(x => x.id)) + 1 : 1;
+      registrosMasivosPendientes.forEach(r => {
+        state.defensas.push({ id: startId++, ...r });
+      });
+      persistLocalData();
+      renderApp();
+      showToast(`¡Se importaron ${registrosMasivosPendientes.length} defensas localmente!`);
+    }
+
+    closeModal("modal-carga-masiva");
+  } catch (err) {
+    alert("Error al importar registros: " + err.message);
+  }
+}
+
+// 4. BUSCADOR HISTÓRICO GLOBAL (2019 - 2026+)
+function ejecutarBusquedaGlobal(queryStr) {
+  const inputEl = document.getElementById("input-busqueda-global");
+  const q = (queryStr !== undefined ? queryStr : (inputEl ? inputEl.value : "")).toLowerCase().trim();
+  const tbody = document.getElementById("tbody-resultados-globales");
+  if (!tbody) return;
+
+  if (!q) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="10" style="text-align:center; padding:2.5rem; color:#6b7280;">
+          Ingrese un nombre, apellido o C.I. para buscar en el archivo histórico desde la gestión 2019.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  const resultados = state.defensas.filter(d => {
+    const matchEst = (d.estudiante || "").toLowerCase().includes(q);
+    const matchCi = (d.ci || "").toLowerCase().includes(q);
+    const matchCarr = (d.carrera || "").toLowerCase().includes(q);
+    const matchT1 = (d.tribunal_1 || "").toLowerCase().includes(q);
+    const matchT2 = (d.tribunal_2 || "").toLowerCase().includes(q);
+    const matchGest = (d.gestion || "").toLowerCase().includes(q);
+    return matchEst || matchCi || matchCarr || matchT1 || matchT2 || matchGest;
+  });
+
+  if (resultados.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="10" style="text-align:center; padding:2.5rem; color:#6b7280;">
+          No se encontraron coincidencias para <strong>"${escapeHtml(q)}"</strong> en ninguna gestión histórica.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = resultados.map(d => {
+    const edicto = state.edictos.find(e => Number(e.id) === Number(d.edicto_id));
+    const badgeClass = `badge-${d.estado ? d.estado.toLowerCase() : 'programada'}`;
+    const fechaText = d.fecha_defensa_texto || formatearFechaTextoDefensa(d.fecha_defensa);
+    const cleanPhone = (d.celular || "").replace(/\D/g, "");
+    const waNumber = cleanPhone ? (cleanPhone.startsWith("591") ? cleanPhone : `591${cleanPhone}`) : "";
+    const waMsg = encodeURIComponent(`Estimado/a ${d.estudiante}, UNITEPC Sub Sede El Alto le notifica sobre su Defensa de Grado programada para el ${fechaText} a horas ${d.hora} en ${d.lugar}.`);
+
+    return `
+      <tr>
+        <td>
+          <strong>${escapeHtml(d.estudiante)}</strong>
+          ${cleanPhone ? `
+            <div style="margin-top:2px;">
+              <a href="https://wa.me/${waNumber}?text=${waMsg}" target="_blank" 
+                 style="display:inline-flex; align-items:center; gap:2px; color:#15803d; font-size:0.75rem; text-decoration:none; font-weight:600;" 
+                 title="Enviar WhatsApp">
+                💬 ${escapeHtml(d.celular)}
+              </a>
+            </div>
+          ` : ''}
+        </td>
+        <td><strong>${escapeHtml(d.ci || '-')}</strong> ${escapeHtml(d.ci_expedido || '')}</td>
+        <td>${escapeHtml(d.carrera)}</td>
+        <td><span class="badge" style="background:#e2e8f0; color:#334155;">${escapeHtml(d.gestion)}</span></td>
+        <td>${edicto ? `<span style="font-size:0.8rem; font-weight:600; color:var(--primary);">${escapeHtml(edicto.codigo)}</span>` : '<span style="color:#9ca3af; font-size:0.8rem;">-</span>'}</td>
+        <td>${escapeHtml(fechaText)} <br><small style="color:#6b7280;">${escapeHtml(d.hora)} hrs</small></td>
+        <td><small>${escapeHtml(d.tribunal_1)}<br>${escapeHtml(d.tribunal_2)}</small></td>
+        <td><strong>${d.nota ? d.nota : '-'}</strong></td>
+        <td><span class="badge ${badgeClass}">${escapeHtml(d.estado)}</span></td>
+        <td style="text-align:center;">
+          <div style="display:flex; justify-content:center; gap:0.35rem;">
+            <button class="btn btn-outline btn-sm" style="color:#0f3460; padding:3px 7px;" onclick="verActaDefensa(${d.id})" title="Imprimir Acta Oficial de Calificación">
+              📄 Acta
+            </button>
+            <button class="btn btn-outline btn-sm" style="color:#16a34a; padding:3px 7px;" onclick="verCertificadoDefensa(${d.id})" title="Emitir Certificado de Aprobación">
+              📜 Certificado
+            </button>
+            <button class="btn btn-outline btn-sm" style="padding:3px 7px;" onclick="editarDefensa(${d.id})" title="Editar datos">
+              ✏️
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+// ==========================================
 // CONFIGURACIÓN INSTITUCIONAL
 // ==========================================
 
@@ -1288,6 +1747,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (targetId === "view-reportes") {
         renderReportesGestion();
       }
+      if (targetId === "view-buscador") {
+        const inp = document.getElementById("input-busqueda-global");
+        if (inp) {
+          inp.focus();
+          if (inp.value) ejecutarBusquedaGlobal(inp.value);
+        }
+      }
     });
   });
 
@@ -1410,8 +1876,40 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Limpiar modo de impresión al terminar
   window.addEventListener("afterprint", () => {
-    document.body.classList.remove("print-mode-reporte");
+    document.body.classList.remove("print-mode-reporte", "print-mode-acta", "print-mode-certificado");
   });
+
+  // Módulo de Carga Masiva desde Excel
+  const btnCargaMasiva = document.getElementById("btn-modal-carga-masiva");
+  if (btnCargaMasiva) btnCargaMasiva.addEventListener("click", openModalCargaMasiva);
+
+  const btnPlantillaCsv = document.getElementById("btn-descargar-plantilla-csv");
+  if (btnPlantillaCsv) btnPlantillaCsv.addEventListener("click", descargarPlantillaExcel);
+
+  const btnEjemploMasivo = document.getElementById("btn-cargar-ejemplo-masivo");
+  if (btnEjemploMasivo) btnEjemploMasivo.addEventListener("click", cargarEjemploMasivo);
+
+  const btnProcesarMasivo = document.getElementById("btn-procesar-masivo");
+  if (btnProcesarMasivo) btnProcesarMasivo.addEventListener("click", procesarTextoMasivo);
+
+  const btnConfirmarMasivo = document.getElementById("btn-confirmar-carga-masiva");
+  if (btnConfirmarMasivo) btnConfirmarMasivo.addEventListener("click", confirmarCargaMasiva);
+
+  // Botones de impresión de Acta y Certificado
+  const btnImpActa = document.getElementById("btn-imprimir-acta-individual");
+  if (btnImpActa) btnImpActa.addEventListener("click", imprimirActaIndividual);
+
+  const btnImpCert = document.getElementById("btn-imprimir-certificado-individual");
+  if (btnImpCert) btnImpCert.addEventListener("click", imprimirCertificadoIndividual);
+
+  // Buscador Histórico Global
+  const btnBuscarGlobal = document.getElementById("btn-ejecutar-busqueda-global");
+  if (btnBuscarGlobal) btnBuscarGlobal.addEventListener("click", () => ejecutarBusquedaGlobal());
+
+  const inputBuscarGlobal = document.getElementById("input-busqueda-global");
+  if (inputBuscarGlobal) {
+    inputBuscarGlobal.addEventListener("input", (e) => ejecutarBusquedaGlobal(e.target.value));
+  }
 
   // Respaldos
   document.getElementById("btn-descargar-backup").addEventListener("click", descargarBackupJson);
