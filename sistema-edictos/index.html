@@ -896,51 +896,72 @@
        MODAL: CARGA MASIVA DE DEFENSAS DESDE EXCEL / PLANILLA
        ======================================================== -->
   <div class="modal-backdrop" id="modal-carga-masiva">
-    <div class="modal-box" style="max-width: 900px; width: 95%;">
+    <div class="modal-box" style="max-width: 950px; width: 95%;">
       <div class="modal-header">
         <h3 class="modal-title">📥 Carga Masiva de Defensas desde Excel (Historial 2019 - 2026+)</h3>
         <button class="modal-close" onclick="closeModal('modal-carga-masiva')">&times;</button>
       </div>
       <div class="modal-body">
-        <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:12px 16px; margin-bottom:1.25rem; font-size:0.85rem; color:#1e40af; line-height:1.5;">
-          <strong>💡 ¿Cómo funciona la Carga Rápida?</strong><br>
-          1. Abra su archivo de Excel o planilla de defensas pasadas (desde 2019 hasta hoy).<br>
-          2. Copie las filas y péguelas directamente en el cuadro de texto abajo (o descargue nuestra plantilla modelo).<br>
-          3. El sistema reconocerá automáticamente nombres, C.I., carreras, tribunales, notas y gestiones.
+        
+        <!-- Input de archivo oculto -->
+        <input type="file" id="input-archivo-excel" accept=".xlsx, .xls, .csv, .tsv, .txt" style="display:none;">
+
+        <!-- Zona de Drag & Drop -->
+        <div class="excel-dropzone" id="dropzone-excel" title="Haga clic para seleccionar o arrastre su archivo aquí">
+          <div class="excel-dropzone-icon">📊</div>
+          <div class="excel-dropzone-title">Haga clic aquí para seleccionar su archivo Excel (.xlsx, .xls) o CSV</div>
+          <div class="excel-dropzone-subtitle">o arrastre y suelte su archivo directamente en este cuadro</div>
         </div>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
-          <div style="display:flex; gap:0.5rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <button type="button" class="btn btn-primary btn-sm" id="btn-seleccionar-archivo-excel">
+              <span>📁</span> Seleccionar Archivo Excel / CSV
+            </button>
             <button type="button" class="btn btn-outline btn-sm" id="btn-descargar-plantilla-csv">
-              <span>📥</span> Descargar Plantilla Excel (.CSV)
+              <span>📥</span> Descargar Plantilla (.CSV)
             </button>
             <button type="button" class="btn btn-outline btn-sm" id="btn-cargar-ejemplo-masivo">
-              <span>📋</span> Pegar Ejemplo de Prueba
+              <span>📋</span> Probar con Ejemplo
+            </button>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-limpiar-masivo" style="color:#dc2626;">
+              <span>🧹</span> Limpiar
             </button>
           </div>
           <div>
-            <span style="font-size:0.8rem; color:var(--text-muted);">Compatible con Excel (separado por tabulación o comas)</span>
+            <span style="font-size:0.8rem; color:var(--text-muted);">Reconocimiento inteligente por cabeceras o columnas</span>
           </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label" style="font-weight:700;">Pegue aquí las filas copiadas desde su Excel:</label>
-          <textarea id="txt-carga-masiva" class="form-input" rows="7" style="font-family:monospace; font-size:0.82rem; white-space:pre;" placeholder="ESTUDIANTE	CI	EXP	CARRERA	MODALIDAD	FECHA	HORA	LUGAR	TRIBUNAL 1	TRIBUNAL 2	CELULAR	GESTION	ESTADO	NOTA"></textarea>
+          <label class="form-label" style="font-weight:700;">
+            O pegue directamente el texto o celdas copiadas de su Excel (<kbd>Ctrl + V</kbd>):
+          </label>
+          <textarea id="txt-carga-masiva" class="form-input" rows="6" style="font-family:monospace; font-size:0.82rem; white-space:pre;" placeholder="Copie de su Excel y pegue aquí con Ctrl + V...
+Ejemplo:
+ESTUDIANTE	CI	EXP	CARRERA	MODALIDAD	FECHA	HORA	LUGAR	TRIBUNAL 1	TRIBUNAL 2	CELULAR	GESTION	ESTADO	NOTA
+QUISPE MAMANI CARLOS	4892341	LP	MEDICINA	EXÁMEN DE GRADO	2019-06-15	09:00	CONSEJO ACADÉMICO	Dr. Ramos	Dra. Lopez	71234567	2019	Aprobada	85"></textarea>
         </div>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.75rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.75rem; flex-wrap:wrap; gap:0.5rem;">
           <button type="button" class="btn btn-primary" id="btn-procesar-masivo">
             <span>⚙️</span> Analizar y Previsualizar Datos
           </button>
-          <span id="badge-filas-detectadas" style="font-weight:700; font-size:0.9rem; color:var(--primary);"></span>
+          <div id="badge-filas-detectadas" style="font-weight:700; font-size:0.9rem; color:var(--primary);"></div>
         </div>
+
+        <!-- Alerta o mensaje de diagnóstico -->
+        <div id="msg-diagnostico-masivo" style="display:none; margin-top:0.75rem; padding:10px 14px; border-radius:6px; font-size:0.85rem;"></div>
 
         <!-- Previsualización -->
         <div id="preview-masivo-container" style="display:none; margin-top:1.25rem;">
-          <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin-bottom:0.5rem;">
-            📋 Registros Listos para Importar:
-          </h4>
-          <div class="data-table-container" style="max-height:220px; overflow-y:auto; border:1px solid var(--border-color); border-radius:6px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+            <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin:0;">
+              📋 Registros Listos para Importar:
+            </h4>
+            <span id="preview-summary-text" style="font-size:0.8rem; color:var(--text-muted);"></span>
+          </div>
+          <div class="data-table-container" style="max-height:240px; overflow-y:auto; border:1px solid var(--border-color); border-radius:6px;">
             <table class="data-table" style="font-size:0.8rem;">
               <thead>
                 <tr>
@@ -1156,6 +1177,8 @@
   <!-- Contenedor para Notificaciones Toast -->
   <div class="toast-container" id="toast-container"></div>
 
+  <!-- SheetJS para lectura directa de archivos Excel (.xlsx / .xls) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

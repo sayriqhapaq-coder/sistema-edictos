@@ -1370,12 +1370,36 @@ function imprimirCertificadoIndividual() {
 let registrosMasivosPendientes = [];
 
 function openModalCargaMasiva() {
-  document.getElementById("txt-carga-masiva").value = "";
-  document.getElementById("badge-filas-detectadas").textContent = "";
-  document.getElementById("preview-masivo-container").style.display = "none";
-  document.getElementById("btn-confirmar-carga-masiva").style.display = "none";
+  const txt = document.getElementById("txt-carga-masiva");
+  if (txt) txt.value = "";
+  const badge = document.getElementById("badge-filas-detectadas");
+  if (badge) badge.textContent = "";
+  const diag = document.getElementById("msg-diagnostico-masivo");
+  if (diag) { diag.style.display = "none"; diag.innerHTML = ""; }
+  const preview = document.getElementById("preview-masivo-container");
+  if (preview) preview.style.display = "none";
+  const btnConf = document.getElementById("btn-confirmar-carga-masiva");
+  if (btnConf) btnConf.style.display = "none";
+  const inputFile = document.getElementById("input-archivo-excel");
+  if (inputFile) inputFile.value = "";
   registrosMasivosPendientes = [];
   openModal("modal-carga-masiva");
+}
+
+function limpiarCargaMasiva() {
+  const txt = document.getElementById("txt-carga-masiva");
+  if (txt) txt.value = "";
+  const badge = document.getElementById("badge-filas-detectadas");
+  if (badge) badge.textContent = "";
+  const diag = document.getElementById("msg-diagnostico-masivo");
+  if (diag) { diag.style.display = "none"; diag.innerHTML = ""; }
+  const preview = document.getElementById("preview-masivo-container");
+  if (preview) preview.style.display = "none";
+  const btnConf = document.getElementById("btn-confirmar-carga-masiva");
+  if (btnConf) btnConf.style.display = "none";
+  const inputFile = document.getElementById("input-archivo-excel");
+  if (inputFile) inputFile.value = "";
+  registrosMasivosPendientes = [];
 }
 
 function descargarPlantillaExcel() {
@@ -1383,7 +1407,8 @@ function descargarPlantillaExcel() {
   const ejemplos = [
     "QUISPE MAMANI CARLOS;4892341;LP;MEDICINA;EXÁMEN DE GRADO;2019-06-15;09:00;CONSEJO ACADÉMICO;Dr. Walter Ramos;Dra. Carmen Lopez;71234567;2019;Aprobada;85",
     "FLORES CHOQUE MARIA;5948321;EA;ODONTOLOGÍA;EXÁMEN DE GRADO;2020-04-10;10:30;CLINICA ODONTOLÓGICA;Dra. Rosario Flores;Dr. Victor Mendoza;72345678;2020;Aprobada;90",
-    "CONDORI APAZA JUAN;6109283;LP;INGENIERIA DE SISTEMAS;PROYECTO DE GRADO;2021-11-20;14:00;LABORATORIO SISTEMAS;Ing. Jorge Castro;Ing. Silvia Ruiz;73456789;2021;Aprobada;88"
+    "CONDORI APAZA JUAN;6109283;LP;INGENIERIA DE SISTEMAS;PROYECTO DE GRADO;2021-11-20;14:00;LABORATORIO SISTEMAS;Ing. Jorge Castro;Ing. Silvia Ruiz;73456789;2021;Aprobada;88",
+    "MAMANI LAURA PATRICIA;7048192;CB;FISIOTERAPIA Y KINESIOLOGÍA;EXÁMEN DE GRADO;2022-08-18;11:00;AULA MAGNA;Lic. Fernando Rojas;Lic. Paola Vargas;74567890;2022;Aprobada;92"
   ].join("\n");
 
   const contenido = "\uFEFF" + encabezado + ejemplos;
@@ -1398,7 +1423,8 @@ function descargarPlantillaExcel() {
 }
 
 function cargarEjemploMasivo() {
-  const ej = `LETICIA SOLEDAD MOLLINEDO\t4892341\tLP\tMEDICINA\tEXÁMEN DE GRADO\t2019-05-18\t09:00\tHOSPITAL "METODISTA"\tDra. Magaly Mamani\tDra. Francy Pacheco\t71234567\t2019\tAprobada\t85
+  const ej = `ESTUDIANTE\tCI\tEXP\tCARRERA\tMODALIDAD\tFECHA\tHORA\tLUGAR\tTRIBUNAL 1\tTRIBUNAL 2\tCELULAR\tGESTION\tESTADO\tNOTA
+LETICIA SOLEDAD MOLLINEDO\t4892341\tLP\tMEDICINA\tEXÁMEN DE GRADO\t2019-05-18\t09:00\tHOSPITAL "METODISTA"\tDra. Magaly Mamani\tDra. Francy Pacheco\t71234567\t2019\tAprobada\t85
 JUAN CARLOS MIXTO LAURA\t5948312\tLP\tMEDICINA\tEXÁMEN DE GRADO\t2020-09-12\t10:00\tHOSPITAL "METODISTA"\tDra. Magaly Mamani\tDra. Francy Pacheco\t72345678\t2020\tAprobada\t88
 TALIA JULIA RIVERA YUGAR\t6849201\tEA\tODONTOLOGÍA\tEXÁMEN DE GRADO\t2021-03-24\t11:00\tCONSEJO ACADÉMICO\tDr. Juan Perez\tDra. Elena Gomez\t73456789\t2021\tAprobada\t90
 CARLOS JENSEN URIONA\t5192834\tCB\tINGENIERIA DE SONIDO\tTESIS DE GRADO\t2022-10-15\t14:00\tAUDITORIO CENTRAL\tIng. Daniel Condorcet\tIng. Sergio Crespo\t74567890\t2022\tAprobada\t92
@@ -1407,100 +1433,372 @@ JUAN ESCOBAR MENDOZA\t7029384\tLP\tDERECHO\tEXÁMEN DE GRADO\t2023-06-20\t15:00\
   procesarTextoMasivo();
 }
 
+// Limpieza de celdas
+function limpiarCeldaMasiva(cell) {
+  if (cell === undefined || cell === null) return "";
+  let s = String(cell).trim();
+  if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
+    s = s.substring(1, s.length - 1).trim();
+  }
+  return s.replace(/""/g, '"').trim();
+}
+
+// Separación de líneas respetando comillas y delimitadores
+function splitLineaMasiva(line) {
+  line = line.trim();
+  if (!line) return [];
+
+  if (line.includes("\t")) {
+    return line.split("\t").map(limpiarCeldaMasiva);
+  }
+  if (line.includes(";")) {
+    return parseSeparatedWithQuotes(line, ";");
+  }
+  if (line.includes("|")) {
+    return parseSeparatedWithQuotes(line, "|");
+  }
+  if (line.includes(",")) {
+    return parseSeparatedWithQuotes(line, ",");
+  }
+  // Copiado desde tablas en formato espaciado (2 o más espacios consecutivos)
+  if (/\s{2,}/.test(line)) {
+    return line.split(/\s{2,}/).map(limpiarCeldaMasiva);
+  }
+  return [limpiarCeldaMasiva(line)];
+}
+
+function parseSeparatedWithQuotes(line, sep) {
+  const result = [];
+  let cur = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"' || char === "'") {
+      inQuotes = !inQuotes;
+    } else if (char === sep && !inQuotes) {
+      result.push(limpiarCeldaMasiva(cur));
+      cur = "";
+    } else {
+      cur += char;
+    }
+  }
+  result.push(limpiarCeldaMasiva(cur));
+  return result;
+}
+
+// Normalización universal de fechas a YYYY-MM-DD
+function normalizarFecha(val, fallbackGestion = "2026") {
+  if (!val) return `${fallbackGestion}-03-15`;
+  const s = String(val).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  // DD/MM/AAAA o DD-MM-AAAA o DD.MM.AAAA
+  const m1 = s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+  if (m1) {
+    const d = String(m1[1]).padStart(2, "0");
+    const m = String(m1[2]).padStart(2, "0");
+    return `${m1[3]}-${m}-${d}`;
+  }
+  // AAAA/MM/DD
+  const m2 = s.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})$/);
+  if (m2) {
+    const m = String(m2[2]).padStart(2, "0");
+    const d = String(m2[3]).padStart(2, "0");
+    return `${m2[1]}-${m}-${d}`;
+  }
+  return s;
+}
+
+// Separación de C.I. y expedido (ej: "4892341 LP")
+function separarCiExpedido(ciRaw, expRaw) {
+  let ci = String(ciRaw || "").trim();
+  let exp = String(expRaw || "").trim().toUpperCase();
+
+  const match = ci.match(/^(\d+)[ -_]+([A-Za-z]{2,3})$/);
+  if (match) {
+    ci = match[1];
+    if (!exp) exp = match[2].toUpperCase();
+  }
+  if (!exp) exp = "LP";
+  return { ci, exp };
+}
+
+// Detector inteligente de columnas por encabezados
+function detectarMapeoColumnas(cols) {
+  const lineText = cols.join(" ").toLowerCase();
+  const hasKeywords = /estudiante|nombre|alumno|postulante|graduado|apellidos|carrera|facultad|tribunal|ci|carnet|cedula|defensa/i.test(lineText);
+  if (!hasKeywords) return null;
+
+  const map = {};
+  cols.forEach((rawCol, idx) => {
+    const c = rawCol.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    if (/^(nro|n°|num|item|#|n)$/i.test(c)) {
+      map.correlativo = idx;
+    } else if (/estudiante|nombre|alumno|postulante|graduado|apellidos/i.test(c)) {
+      map.estudiante = idx;
+    } else if (/^(ci|c\.i\.|carnet|cedula|documento)$/i.test(c) || /carnet/i.test(c)) {
+      map.ci = idx;
+    } else if (/^(exp|expedido|dep|departamento)$/i.test(c)) {
+      map.ci_expedido = idx;
+    } else if (/carrera|programa|facultad/i.test(c)) {
+      map.carrera = idx;
+    } else if (/modalidad/i.test(c)) {
+      map.modalidad = idx;
+    } else if (/fecha/i.test(c)) {
+      map.fecha = idx;
+    } else if (/hora|hrs|horario/i.test(c)) {
+      map.hora = idx;
+    } else if (/lugar|aula|hospital|recinto|ambiente/i.test(c)) {
+      map.lugar = idx;
+    } else if (/tribunal.*1|t1|primer.*tribunal/i.test(c)) {
+      map.tribunal_1 = idx;
+    } else if (/tribunal.*2|t2|segundo.*tribunal/i.test(c)) {
+      map.tribunal_2 = idx;
+    } else if (/tribunal/i.test(c) && map.tribunal_1 === undefined) {
+      map.tribunal_1 = idx;
+    } else if (/celular|telefono|movil|whatsapp|telf/i.test(c)) {
+      map.celular = idx;
+    } else if (/gestion|año|ano|periodo/i.test(c)) {
+      map.gestion = idx;
+    } else if (/estado|condicion|resultado/i.test(c)) {
+      map.estado = idx;
+    } else if (/nota|calificacion|puntaje/i.test(c)) {
+      map.nota = idx;
+    }
+  });
+
+  return Object.keys(map).length >= 2 ? map : null;
+}
+
 function procesarTextoMasivo() {
   const raw = document.getElementById("txt-carga-masiva").value.trim();
+  const diagEl = document.getElementById("msg-diagnostico-masivo");
+  const badgeEl = document.getElementById("badge-filas-detectadas");
+  const previewContainer = document.getElementById("preview-masivo-container");
+  const btnConfirmar = document.getElementById("btn-confirmar-carga-masiva");
+
   if (!raw) {
-    alert("Por favor ingrese o pegue las filas a importar.");
+    if (diagEl) {
+      diagEl.style.display = "block";
+      diagEl.style.background = "#fee2e2";
+      diagEl.style.color = "#991b1b";
+      diagEl.innerHTML = "⚠️ Ingrese texto, seleccione un archivo Excel/CSV o use el botón 'Probar con Ejemplo'.";
+    }
     return;
   }
 
-  const lines = raw.split("\n").map(l => l.trim()).filter(Boolean);
+  const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  if (lines.length === 0) return;
+
+  // Analizar la primera línea para detectar si contiene cabeceras
+  const firstCols = splitLineaMasiva(lines[0]);
+  const headerMap = detectarMapeoColumnas(firstCols);
+  let startIndex = 0;
+  if (headerMap) {
+    startIndex = 1; // Omitir la fila de encabezados
+  }
+
   const parsed = [];
 
-  for (let line of lines) {
-    if (line.toLowerCase().includes("estudiante") && line.toLowerCase().includes("carrera")) {
-      continue;
-    }
-
-    let cols = [];
-    if (line.includes("\t")) {
-      cols = line.split("\t");
-    } else if (line.includes(";")) {
-      cols = line.split(";");
-    } else if (line.includes(",")) {
-      cols = line.split(",");
-    } else {
-      cols = [line];
-    }
-
-    cols = cols.map(c => c.trim().replace(/^["']|["']$/g, ""));
+  for (let i = startIndex; i < lines.length; i++) {
+    const line = lines[i];
+    const cols = splitLineaMasiva(line);
     if (cols.length < 2) continue;
 
-    const estudiante = (cols[0] || "").toUpperCase();
-    const ci = cols[1] || "";
-    const ci_expedido = (cols[2] || "LP").toUpperCase();
-    const carrera = (cols[3] || "MEDICINA").toUpperCase();
-    const modalidad = cols[4] || "EXÁMEN DE GRADO";
-    const fecha = cols[5] || new Date().toISOString().split("T")[0];
-    const hora = cols[6] || "09:00";
-    const lugar = (cols[7] || 'CONSEJO ACADÉMICO').toUpperCase();
-    const tribunal_1 = cols[8] || "";
-    const tribunal_2 = cols[9] || "";
-    const celular = cols[10] || "";
-    const gestion = cols[11] || "2026";
-    const estado = cols[12] || "Aprobada";
-    const nota = parseFloat(cols[13]) || (estado === "Aprobada" ? 80.0 : 0.0);
+    let estudiante = "";
+    let ci = "";
+    let ci_expedido = "LP";
+    let carrera = "MEDICINA";
+    let modalidad = "EXÁMEN DE GRADO";
+    let fecha = new Date().toISOString().split("T")[0];
+    let hora = "09:00";
+    let lugar = "CONSEJO ACADÉMICO";
+    let tribunal_1 = "";
+    let tribunal_2 = "";
+    let celular = "";
+    let gestion = "2026";
+    let estado = "Aprobada";
+    let nota = 80.0;
 
-    if (estudiante) {
-      parsed.push({
-        estudiante,
-        ci,
-        ci_expedido,
-        carrera,
-        modalidad,
-        fecha_defensa: fecha,
-        fecha_defensa_texto: formatearFechaTextoDefensa(fecha),
-        hora,
-        lugar,
-        tribunal_1,
-        tribunal_2,
-        celular,
-        gestion,
-        estado,
-        nota
-      });
+    if (headerMap) {
+      if (headerMap.estudiante !== undefined) estudiante = (cols[headerMap.estudiante] || "").toUpperCase();
+      if (headerMap.ci !== undefined) ci = cols[headerMap.ci] || "";
+      if (headerMap.ci_expedido !== undefined) ci_expedido = cols[headerMap.ci_expedido] || "";
+      if (headerMap.carrera !== undefined) carrera = (cols[headerMap.carrera] || "MEDICINA").toUpperCase();
+      if (headerMap.modalidad !== undefined) modalidad = cols[headerMap.modalidad] || "EXÁMEN DE GRADO";
+      if (headerMap.fecha !== undefined) fecha = cols[headerMap.fecha] || "";
+      if (headerMap.hora !== undefined) hora = cols[headerMap.hora] || "09:00";
+      if (headerMap.lugar !== undefined) lugar = (cols[headerMap.lugar] || "CONSEJO ACADÉMICO").toUpperCase();
+      if (headerMap.tribunal_1 !== undefined) tribunal_1 = cols[headerMap.tribunal_1] || "";
+      if (headerMap.tribunal_2 !== undefined) tribunal_2 = cols[headerMap.tribunal_2] || "";
+      if (headerMap.celular !== undefined) celular = cols[headerMap.celular] || "";
+      if (headerMap.gestion !== undefined) gestion = cols[headerMap.gestion] || "2026";
+      if (headerMap.estado !== undefined) estado = cols[headerMap.estado] || "Aprobada";
+      if (headerMap.nota !== undefined) {
+        const rawNota = String(cols[headerMap.nota] || "").replace(",", ".").replace("%", "");
+        nota = parseFloat(rawNota) || (estado === "Aprobada" ? 80.0 : 0.0);
+      }
+    } else {
+      let offset = 0;
+      // Verificar si la primera columna es un correlativo (1, 2, 3...)
+      if (/^\d{1,4}$/.test(cols[0]) && cols.length > 2 && isNaN(cols[1])) {
+        offset = 1;
+      }
+
+      estudiante = (cols[offset] || "").toUpperCase();
+      const nextCol = cols[offset + 1] || "";
+      const isNextColNumeric = /^\d{5,9}/.test(nextCol.trim());
+
+      if (isNextColNumeric) {
+        ci = nextCol;
+        ci_expedido = (cols[offset + 2] || "LP").toUpperCase();
+        carrera = (cols[offset + 3] || "MEDICINA").toUpperCase();
+        modalidad = cols[offset + 4] || "EXÁMEN DE GRADO";
+        fecha = cols[offset + 5] || "";
+        hora = cols[offset + 6] || "09:00";
+        lugar = (cols[offset + 7] || "CONSEJO ACADÉMICO").toUpperCase();
+        tribunal_1 = cols[offset + 8] || "";
+        tribunal_2 = cols[offset + 9] || "";
+        celular = cols[offset + 10] || "";
+        gestion = cols[offset + 11] || "2026";
+        estado = cols[offset + 12] || "Aprobada";
+        const rawNota = String(cols[offset + 13] || "").replace(",", ".");
+        nota = parseFloat(rawNota) || (estado === "Aprobada" ? 80.0 : 0.0);
+      } else {
+        carrera = nextCol.toUpperCase() || "MEDICINA";
+        modalidad = cols[offset + 2] || "EXÁMEN DE GRADO";
+        fecha = cols[offset + 3] || "";
+        hora = cols[offset + 4] || "09:00";
+        lugar = (cols[offset + 5] || "CONSEJO ACADÉMICO").toUpperCase();
+        tribunal_1 = cols[offset + 6] || "";
+        tribunal_2 = cols[offset + 7] || "";
+        gestion = cols[offset + 8] || "2026";
+        estado = cols[offset + 9] || "Aprobada";
+        const rawNota = String(cols[offset + 10] || "").replace(",", ".");
+        nota = parseFloat(rawNota) || (estado === "Aprobada" ? 80.0 : 0.0);
+      }
     }
+
+    if (!estudiante || estudiante.length < 3) continue;
+
+    const sep = separarCiExpedido(ci, ci_expedido);
+    fecha = normalizarFecha(fecha, gestion);
+
+    parsed.push({
+      estudiante,
+      ci: sep.ci,
+      ci_expedido: sep.exp,
+      carrera,
+      modalidad,
+      fecha_defensa: fecha,
+      fecha_defensa_texto: formatearFechaTextoDefensa(fecha),
+      hora,
+      lugar,
+      tribunal_1,
+      tribunal_2,
+      celular,
+      gestion: String(gestion).trim(),
+      estado,
+      nota
+    });
   }
 
   registrosMasivosPendientes = parsed;
   const count = parsed.length;
 
-  document.getElementById("badge-filas-detectadas").textContent = `✓ ${count} filas listas para importar`;
-  const tbody = document.getElementById("tbody-preview-masivo");
-
   if (count === 0) {
-    document.getElementById("preview-masivo-container").style.display = "none";
-    document.getElementById("btn-confirmar-carga-masiva").style.display = "none";
-    alert("No se pudieron detectar registros válidos. Verifique que contengan al menos Nombre y Carrera.");
+    if (previewContainer) previewContainer.style.display = "none";
+    if (btnConfirmar) btnConfirmar.style.display = "none";
+    if (badgeEl) badgeEl.textContent = "";
+    if (diagEl) {
+      diagEl.style.display = "block";
+      diagEl.style.background = "#fee2e2";
+      diagEl.style.color = "#991b1b";
+      diagEl.innerHTML = `❌ No se pudieron detectar registros válidos en las ${lines.length} líneas ingresadas.<br>Asegúrese de incluir al menos el nombre del estudiante y la carrera.`;
+    }
     return;
   }
 
-  tbody.innerHTML = parsed.map((r, i) => `
-    <tr>
-      <td>${i + 1}</td>
-      <td><strong>${escapeHtml(r.estudiante)}</strong></td>
-      <td>${escapeHtml(r.ci)} ${escapeHtml(r.ci_expedido)}</td>
-      <td>${escapeHtml(r.carrera)}</td>
-      <td><span class="badge" style="background:#e2e8f0; color:#334155;">${escapeHtml(r.gestion)}</span></td>
-      <td>${escapeHtml(r.fecha_defensa)} ${escapeHtml(r.hora)}</td>
-      <td><small>${escapeHtml(r.tribunal_1)}<br>${escapeHtml(r.tribunal_2)}</small></td>
-      <td><strong>${r.nota || '-'}</strong></td>
-      <td>${r.celular ? `📱 ${escapeHtml(r.celular)}` : '-'}</td>
-    </tr>
-  `).join("");
+  if (badgeEl) {
+    badgeEl.textContent = `✓ ${count} registro${count > 1 ? 's' : ''} listo${count > 1 ? 's' : ''} para importar`;
+  }
+  if (diagEl) {
+    diagEl.style.display = "block";
+    diagEl.style.background = "#ecfdf5";
+    diagEl.style.color = "#065f46";
+    diagEl.innerHTML = `✅ <strong>${count} registros reconocidos exitosamente.</strong> Revise la previsualización abajo y presione el botón verde para guardarlos en el sistema.`;
+  }
 
-  document.getElementById("preview-masivo-container").style.display = "block";
-  document.getElementById("btn-confirmar-carga-masiva").style.display = "inline-flex";
+  const summaryText = document.getElementById("preview-summary-text");
+  if (summaryText) {
+    const gestiones = [...new Set(parsed.map(r => r.gestion))].join(", ");
+    summaryText.textContent = `Gestión(es): ${gestiones}`;
+  }
+
+  const tbody = document.getElementById("tbody-preview-masivo");
+  if (tbody) {
+    tbody.innerHTML = parsed.map((r, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td><strong>${escapeHtml(r.estudiante)}</strong></td>
+        <td>${escapeHtml(r.ci || '-')} <small>${escapeHtml(r.ci_expedido)}</small></td>
+        <td>${escapeHtml(r.carrera)}</td>
+        <td><span class="badge" style="background:#e2e8f0; color:#334155;">${escapeHtml(r.gestion)}</span></td>
+        <td>${escapeHtml(r.fecha_defensa)} ${escapeHtml(r.hora)}</td>
+        <td><small>${escapeHtml(r.tribunal_1 || '-')}<br>${escapeHtml(r.tribunal_2 || '-')}</small></td>
+        <td><strong>${r.nota || '-'}</strong></td>
+        <td>${r.celular ? `📱 ${escapeHtml(r.celular)}` : '-'}</td>
+      </tr>
+    `).join("");
+  }
+
+  if (previewContainer) previewContainer.style.display = "block";
+  if (btnConfirmar) {
+    btnConfirmar.style.display = "inline-flex";
+    btnConfirmar.innerHTML = `<span>💾</span> Guardar ${count} Registro${count > 1 ? 's' : ''} en el Sistema`;
+  }
+}
+
+function manejarArchivoExcel(file) {
+  if (!file) return;
+
+  const fileName = file.name.toLowerCase();
+  const diagEl = document.getElementById("msg-diagnostico-masivo");
+  if (diagEl) {
+    diagEl.style.display = "block";
+    diagEl.style.background = "#eff6ff";
+    diagEl.style.color = "#1e40af";
+    diagEl.innerHTML = `⏳ Leyendo archivo <strong>${escapeHtml(file.name)}</strong>...`;
+  }
+
+  if (fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
+    if (window.XLSX) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: "array" });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const csvText = XLSX.utils.sheet_to_csv(worksheet, { FS: "\t" });
+          document.getElementById("txt-carga-masiva").value = csvText;
+          procesarTextoMasivo();
+        } catch (err) {
+          alert("Error al procesar el archivo Excel: " + err.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+      return;
+    } else {
+      alert("Para archivos .xlsx o .xls, guarde su archivo como CSV o copie y pegue las celdas en el cuadro de texto.");
+    }
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById("txt-carga-masiva").value = e.target.result;
+    procesarTextoMasivo();
+  };
+  reader.readAsText(file, "UTF-8");
 }
 
 async function confirmarCargaMasiva() {
@@ -1879,7 +2177,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.body.classList.remove("print-mode-reporte", "print-mode-acta", "print-mode-certificado");
   });
 
-  // Módulo de Carga Masiva desde Excel
+  // Módulo de Carga Masiva desde Excel / CSV
   const btnCargaMasiva = document.getElementById("btn-modal-carga-masiva");
   if (btnCargaMasiva) btnCargaMasiva.addEventListener("click", openModalCargaMasiva);
 
@@ -1889,11 +2187,68 @@ document.addEventListener("DOMContentLoaded", async () => {
   const btnEjemploMasivo = document.getElementById("btn-cargar-ejemplo-masivo");
   if (btnEjemploMasivo) btnEjemploMasivo.addEventListener("click", cargarEjemploMasivo);
 
+  const btnLimpiarMasivo = document.getElementById("btn-limpiar-masivo");
+  if (btnLimpiarMasivo) btnLimpiarMasivo.addEventListener("click", limpiarCargaMasiva);
+
   const btnProcesarMasivo = document.getElementById("btn-procesar-masivo");
   if (btnProcesarMasivo) btnProcesarMasivo.addEventListener("click", procesarTextoMasivo);
 
   const btnConfirmarMasivo = document.getElementById("btn-confirmar-carga-masiva");
   if (btnConfirmarMasivo) btnConfirmarMasivo.addEventListener("click", confirmarCargaMasiva);
+
+  // Subida de archivos Excel / CSV (botón y selector)
+  const inputArchivoExcel = document.getElementById("input-archivo-excel");
+  const btnSeleccionarArchivo = document.getElementById("btn-seleccionar-archivo-excel");
+  if (btnSeleccionarArchivo && inputArchivoExcel) {
+    btnSeleccionarArchivo.addEventListener("click", () => inputArchivoExcel.click());
+  }
+
+  if (inputArchivoExcel) {
+    inputArchivoExcel.addEventListener("change", (e) => {
+      if (e.target.files && e.target.files[0]) {
+        manejarArchivoExcel(e.target.files[0]);
+      }
+    });
+  }
+
+  // Zona de Drag & Drop para archivos Excel
+  const dropzone = document.getElementById("dropzone-excel");
+  if (dropzone && inputArchivoExcel) {
+    dropzone.addEventListener("click", () => inputArchivoExcel.click());
+
+    dropzone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.classList.add("dragover");
+    });
+
+    dropzone.addEventListener("dragleave", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.classList.remove("dragover");
+    });
+
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.classList.remove("dragover");
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+        manejarArchivoExcel(e.dataTransfer.files[0]);
+      }
+    });
+  }
+
+  // Auto-análisis suave al pegar en el textarea
+  const txtCargaMasiva = document.getElementById("txt-carga-masiva");
+  if (txtCargaMasiva) {
+    txtCargaMasiva.addEventListener("paste", () => {
+      setTimeout(() => {
+        if (txtCargaMasiva.value.trim()) {
+          procesarTextoMasivo();
+        }
+      }, 100);
+    });
+  }
 
   // Botones de impresión de Acta y Certificado
   const btnImpActa = document.getElementById("btn-imprimir-acta-individual");

@@ -24,6 +24,35 @@ DB_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "edictos.db")
 STATIC_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
+def safe_float(val, default=0.0):
+    """Convierte de forma segura números con coma decimal, porcentajes o texto a float"""
+    if val is None:
+        return default
+    try:
+        s = str(val).strip().replace(",", ".").replace("%", "")
+        return float(s) if s else default
+    except (ValueError, TypeError):
+        return default
+
+
+def safe_date(val, default=""):
+    """Normaliza fechas en formato DD/MM/AAAA o DD-MM-AAAA a AAAA-MM-DD"""
+    if not val:
+        return default or datetime.now().strftime("%Y-%m-%d")
+    s = str(val).strip()
+    import re
+    # DD/MM/AAAA o DD-MM-AAAA
+    m = re.match(r"^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$", s)
+    if m:
+        return f"{m.group(3)}-{int(m.group(2)):02d}-{int(m.group(1)):02d}"
+    # AAAA/MM/DD
+    m2 = re.match(r"^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})$", s)
+    if m2:
+        return f"{m2.group(1)}-{int(m2.group(2)):02d}-{int(m2.group(3)):02d}"
+    return s
+
+
+
 def get_db_connection():
     conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
@@ -491,7 +520,7 @@ class EdictosRequestHandler(http.server.SimpleHTTPRequestHandler):
                     body.get("ci_expedido", "").strip().upper(),
                     carrera,
                     body.get("modalidad", "EXÁMEN DE GRADO"),
-                    body.get("fecha_defensa", datetime.now().strftime("%Y-%m-%d")),
+                    safe_date(body.get("fecha_defensa")),
                     body.get("fecha_defensa_texto", ""),
                     body.get("hora", "09:00"),
                     body.get("lugar", "CONSEJO ACADÉMICO"),
@@ -500,7 +529,7 @@ class EdictosRequestHandler(http.server.SimpleHTTPRequestHandler):
                     body.get("tribunal_externo", ""),
                     body.get("gestion", "2026"),
                     body.get("estado", "Programada"),
-                    float(body.get("nota", 0.0) or 0.0),
+                    safe_float(body.get("nota", 0.0)),
                     body.get("observaciones", ""),
                     body.get("celular", "").strip()
                 ))
@@ -535,7 +564,7 @@ class EdictosRequestHandler(http.server.SimpleHTTPRequestHandler):
                         str(r.get("ci_expedido", "")).strip().upper(),
                         carr,
                         r.get("modalidad", "EXÁMEN DE GRADO"),
-                        r.get("fecha_defensa", datetime.now().strftime("%Y-%m-%d")),
+                        safe_date(r.get("fecha_defensa")),
                         r.get("fecha_defensa_texto", ""),
                         r.get("hora", "09:00"),
                         r.get("lugar", "CONSEJO ACADÉMICO"),
@@ -544,7 +573,7 @@ class EdictosRequestHandler(http.server.SimpleHTTPRequestHandler):
                         r.get("tribunal_externo", ""),
                         str(r.get("gestion", "2026")).strip(),
                         r.get("estado", "Programada"),
-                        float(r.get("nota", 0.0) or 0.0),
+                        safe_float(r.get("nota", 0.0)),
                         r.get("observaciones", ""),
                         str(r.get("celular", "")).strip()
                     ))

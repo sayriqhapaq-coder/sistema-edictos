@@ -819,6 +819,43 @@ body {
   color: var(--text-muted);
 }
 
+/* Zona de Carga Masiva y Drag & Drop */
+.excel-dropzone {
+  border: 2px dashed #3b82f6;
+  background: #f0f7ff;
+  border-radius: 8px;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.excel-dropzone:hover,
+.excel-dropzone.dragover {
+  background: #dbeafe;
+  border-color: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.excel-dropzone-icon {
+  font-size: 2rem;
+  margin-bottom: 0.35rem;
+}
+
+.excel-dropzone-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #1e40af;
+  margin-bottom: 0.25rem;
+}
+
+.excel-dropzone-subtitle {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
 /* Mensajes Toast */
 .toast-container {
   position: fixed;
