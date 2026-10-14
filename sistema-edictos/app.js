@@ -20,7 +20,8 @@ const state = {
   activeEdictoId: null,
   activeGestion: "2026",
   isApiAvailable: true,
-  authPin: sessionStorage.getItem("unitepc_pin") || ""
+  authPin: sessionStorage.getItem("unitepc_pin") || "",
+  mostrarTribunal: true
 };
 
 // Datos semilla de respaldo si se abre como archivo local estático (file://)
@@ -303,6 +304,43 @@ function renderEdictosSelector() {
   });
 }
 
+function actualizarModoTribunal(conTribunal) {
+  state.mostrarTribunal = conTribunal;
+  const table = document.getElementById("paper-table");
+  const btnCon = document.getElementById("btn-mode-con-tribunal");
+  const btnSin = document.getElementById("btn-mode-sin-tribunal");
+  const subtitle = document.getElementById("paper-subtitle");
+  const edicto = state.edictos.find(e => e.id === state.activeEdictoId);
+
+  if (conTribunal) {
+    if (table) table.classList.remove("sin-tribunal");
+    if (btnCon) {
+      btnCon.style.background = "#0f3460";
+      btnCon.style.color = "#ffffff";
+    }
+    if (btnSin) {
+      btnSin.style.background = "transparent";
+      btnSin.style.color = "#475569";
+    }
+    if (subtitle && edicto) {
+      subtitle.textContent = edicto.subtitulo || "TRIBUNAL INTERNO PARA DEFENSA DE GRADO";
+    }
+  } else {
+    if (table) table.classList.add("sin-tribunal");
+    if (btnCon) {
+      btnCon.style.background = "transparent";
+      btnCon.style.color = "#475569";
+    }
+    if (btnSin) {
+      btnSin.style.background = "#0f3460";
+      btnSin.style.color = "#ffffff";
+    }
+    if (subtitle) {
+      subtitle.textContent = "DEFENSA DE GRADO";
+    }
+  }
+}
+
 function renderActiveEdictoSheet() {
   const edicto = state.edictos.find(e => e.id === state.activeEdictoId);
   if (!edicto) {
@@ -318,6 +356,9 @@ function renderActiveEdictoSheet() {
   document.getElementById("paper-modality").textContent = edicto.modalidad;
   document.getElementById("paper-subtitle").textContent = edicto.subtitulo;
   document.getElementById("paper-date-city").textContent = edicto.fecha_texto || `${edicto.ciudad || state.config.ciudad_default}, ${edicto.fecha_emision}`;
+
+  // Aplicar modo de tribunal (con o sin tribunal)
+  actualizarModoTribunal(state.mostrarTribunal);
 
   // Textos oficiales de firma
   document.getElementById("paper-authority-name").textContent = edicto.autoridad_nombre || state.config.autoridad_nombre;
@@ -578,6 +619,79 @@ function renderReportesGestion() {
       }).join("");
     }
   }
+
+  // Renderizar la hoja oficial imprimible de titulados para esta gestión
+  renderNominaTituladosSheet();
+}
+
+function renderNominaTituladosSheet() {
+  const gestion = state.activeGestion || "2026";
+  const defensasGestion = state.defensas.filter(d => d.gestion === gestion);
+  
+  // Titulados: los que aprobaron su defensa (o todos si aún no hay aprobados)
+  const aprobados = defensasGestion.filter(d => d.estado === "Aprobada");
+  const lista = aprobados.length > 0 ? aprobados : defensasGestion;
+
+  // Cabeceras y textos oficiales
+  const univEl = document.getElementById("rep-univ-title");
+  if (univEl) univEl.textContent = state.config.universidad || "UNIVERSIDAD TÉCNICA PRIVADA COSMOS";
+  
+  const sedeEl = document.getElementById("rep-sede");
+  if (sedeEl) sedeEl.textContent = state.config.sede || "UNITEPC SUB SEDE EL ALTO";
+
+  const gestionEl = document.getElementById("rep-gestion-title");
+  if (gestionEl) gestionEl.textContent = `GESTIÓN ACADÉMICA ${gestion}`;
+
+  const hoy = new Date().toISOString().split("T")[0];
+  const ciudad = state.config.ciudad_default || "El Alto";
+  const fechaTexto = formatearFechaEmisionOficial(hoy, ciudad);
+
+  const dateCityEl = document.getElementById("rep-date-city");
+  if (dateCityEl) dateCityEl.textContent = fechaTexto;
+
+  const sheetFechaEl = document.getElementById("rep-sheet-fecha");
+  if (sheetFechaEl) sheetFechaEl.textContent = fechaTexto;
+
+  const totalEl = document.getElementById("rep-sheet-total");
+  if (totalEl) totalEl.textContent = lista.length;
+
+  const carrerasCount = [...new Set(lista.map(d => d.carrera))].length;
+  const carrerasEl = document.getElementById("rep-sheet-carreras");
+  if (carrerasEl) carrerasEl.textContent = carrerasCount;
+
+  // Firmas
+  const authNameEl = document.getElementById("rep-authority-name");
+  if (authNameEl) authNameEl.textContent = state.config.autoridad_nombre || "Lic. Amílcar Bruno Cáceres Pérez";
+
+  const authCargoEl = document.getElementById("rep-authority-cargo");
+  if (authCargoEl) authCargoEl.textContent = state.config.autoridad_cargo || "VICERRECTOR";
+
+  const authSedeEl = document.getElementById("rep-authority-sede");
+  if (authSedeEl) authSedeEl.textContent = state.config.sede || "UNITEPC SUB SEDE EL ALTO";
+
+  // Llenar tabla oficial de titulados
+  const tbody = document.getElementById("rep-table-body");
+  if (!tbody) return;
+
+  if (lista.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:25px; color:#6b7280; font-style:italic;">No hay estudiantes titulados registrados para la gestión ${gestion}.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = lista.map((d, idx) => {
+    const fechaText = d.fecha_defensa_texto || formatearFechaTextoDefensa(d.fecha_defensa);
+    return `
+      <tr>
+        <td style="font-weight:700; text-align:center;">${idx + 1}</td>
+        <td style="text-align:left; padding-left:8px; font-weight:600;">${escapeHtml(d.estudiante)}</td>
+        <td style="text-align:center;">${escapeHtml(d.carrera)}</td>
+        <td style="text-align:center;">${escapeHtml(d.modalidad || 'EXÁMEN DE GRADO')}</td>
+        <td style="text-align:center;">${escapeHtml(fechaText)}</td>
+        <td style="font-weight:700; text-align:center;">${escapeHtml(d.hora || '-')}</td>
+        <td style="font-weight:700; text-align:center;">${d.nota ? d.nota : (d.estado === 'Aprobada' ? 'APROB.' : '-')}</td>
+      </tr>
+    `;
+  }).join("");
 }
 
 // ==========================================
@@ -1192,10 +1306,27 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (chkFirma) chkFirma.addEventListener("change", renderActiveEdictoSheet);
   if (chkSello) chkSello.addEventListener("change", renderActiveEdictoSheet);
 
-  // Botón de imprimir edicto oficial
-  const btnImprimir = document.getElementById("btn-imprimir-edicto");
-  if (btnImprimir) {
-    btnImprimir.addEventListener("click", () => {
+  // Botones de modo de visualización de tribunal (Con o Sin Tribunal)
+  const btnModeCon = document.getElementById("btn-mode-con-tribunal");
+  const btnModeSin = document.getElementById("btn-mode-sin-tribunal");
+  if (btnModeCon) btnModeCon.addEventListener("click", () => actualizarModoTribunal(true));
+  if (btnModeSin) btnModeSin.addEventListener("click", () => actualizarModoTribunal(false));
+
+  // Botones de impresión de edicto (Con Tribunal y Sin Tribunal)
+  const btnImprimirCon = document.getElementById("btn-imprimir-con-tribunal");
+  if (btnImprimirCon) {
+    btnImprimirCon.addEventListener("click", () => {
+      actualizarModoTribunal(true);
+      document.body.classList.remove("print-mode-reporte");
+      window.print();
+    });
+  }
+
+  const btnImprimirSin = document.getElementById("btn-imprimir-sin-tribunal");
+  if (btnImprimirSin) {
+    btnImprimirSin.addEventListener("click", () => {
+      actualizarModoTribunal(false);
+      document.body.classList.remove("print-mode-reporte");
       window.print();
     });
   }
@@ -1257,8 +1388,29 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Reportes y exportación
   document.getElementById("reporte-select-gestion").addEventListener("change", renderReportesGestion);
   document.getElementById("btn-exportar-csv").addEventListener("click", exportarCsvGestion);
-  document.getElementById("btn-imprimir-reporte").addEventListener("click", () => {
-    window.print();
+
+  // Impresión de Nómina Oficial de Titulados
+  const btnImpTitulados = document.getElementById("btn-imprimir-reporte-titulados");
+  if (btnImpTitulados) {
+    btnImpTitulados.addEventListener("click", () => {
+      renderNominaTituladosSheet();
+      document.body.classList.add("print-mode-reporte");
+      window.print();
+    });
+  }
+
+  const btnImpTituladosDirecto = document.getElementById("btn-imprimir-reporte-titulados-directo");
+  if (btnImpTituladosDirecto) {
+    btnImpTituladosDirecto.addEventListener("click", () => {
+      renderNominaTituladosSheet();
+      document.body.classList.add("print-mode-reporte");
+      window.print();
+    });
+  }
+
+  // Limpiar modo de impresión al terminar
+  window.addEventListener("afterprint", () => {
+    document.body.classList.remove("print-mode-reporte");
   });
 
   // Respaldos
